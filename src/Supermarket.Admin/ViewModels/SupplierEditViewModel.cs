@@ -39,7 +39,47 @@ public sealed partial class SupplierEditViewModel : ObservableObject
     private string? taxNumber;
 
     [ObservableProperty]
-    private decimal balance;
+    private decimal debitBalance;
+
+    [ObservableProperty]
+    private decimal creditBalance;
+
+    public decimal Balance
+    {
+        get => CreditBalance > 0 ? CreditBalance : (DebitBalance > 0 ? -DebitBalance : 0m);
+        set
+        {
+            if (value < 0)
+            {
+                DebitBalance = -value;
+                CreditBalance = 0m;
+            }
+            else
+            {
+                DebitBalance = 0m;
+                CreditBalance = value;
+            }
+            OnPropertyChanged();
+        }
+    }
+
+    partial void OnDebitBalanceChanged(decimal value)
+    {
+        if (value > 0 && CreditBalance > 0)
+        {
+            CreditBalance = 0m;
+        }
+        OnPropertyChanged(nameof(Balance));
+    }
+
+    partial void OnCreditBalanceChanged(decimal value)
+    {
+        if (value > 0 && DebitBalance > 0)
+        {
+            DebitBalance = 0m;
+        }
+        OnPropertyChanged(nameof(Balance));
+    }
 
     [ObservableProperty]
     private string? notes;

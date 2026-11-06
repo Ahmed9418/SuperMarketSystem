@@ -37,6 +37,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,12">
@@ -62,15 +64,15 @@
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,12">
-                    <TextBlock Text="الرقم الضريبي" Style="{StaticResource FormLabelStyle}" />
-                    <TextBox Style="{StaticResource LatinInputStyle}"
-                             Text="{Binding TaxNumber, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="رصيد لنا (ج.م)" Style="{StaticResource FormLabelStyle}" />
+                    <TextBox Style="{StaticResource NumericInputStyle}"
+                             Text="{Binding DebitBalance, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}" />
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,12">
-                    <TextBlock Text="الرصيد (ج.م)" Style="{StaticResource FormLabelStyle}" />
+                    <TextBlock Text="رصيد علينا (ج.م)" Style="{StaticResource FormLabelStyle}" />
                     <TextBox Style="{StaticResource NumericInputStyle}"
-                             Text="{Binding Balance, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}" />
+                             Text="{Binding CreditBalance, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}" />
                 </StackPanel>
 
                 <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,12">
