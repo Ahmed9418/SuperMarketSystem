@@ -5,6 +5,7 @@ using Supermarket.Core.DTOs;
 using Supermarket.Core.Interfaces;
 using Supermarket.POS.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using Supermarket.Wpf;
 
 namespace Supermarket.POS.Views;
 
@@ -28,7 +29,7 @@ public partial class SalesWindow : Window
 
         _viewModel.CurrentUserId = cashier.Id;
         _viewModel.ErrorSound = () => SystemSounds.Beep();
-        _viewModel.FocusBarcodeRequested += (_, _) => RefocusBarcode();
+        _viewModel.FocusBarcodeRequested += OnFocusBarcodeRequested;
         _viewModel.ShiftOpenRequested += OnShiftOpenRequested;
         _viewModel.CheckoutRequested += OnCheckoutRequested;
         _viewModel.ShiftCloseRequested += OnShiftCloseRequested;
@@ -36,14 +37,19 @@ public partial class SalesWindow : Window
 
         DataContext = viewModel;
 
-        Loaded += async (_, _) =>
-        {
-            await _viewModel.InitializeAsync(cashier, "POS-01");
-            RefocusBarcode();
-        };
+        Loaded += OnLoaded;
 
         // Any click that does not land on an input control returns the keyboard to the scanner.
-        PreviewMouseDown += (_, _) => Dispatcher.BeginInvoke(RefocusBarcode, DispatcherPriority.Input);
+        PreviewMouseDown += OnPreviewMouseDownAnywhere;
+    }
+
+    private void OnPreviewMouseDownAnywhere(object sender, MouseButtonEventArgs e) =>
+        Dispatcher.BeginInvoke(RefocusBarcode, DispatcherPriority.Input);
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.InitializeAsync(_cashier, "POS-01");
+        RefocusBarcode();
     }
 
     /// <summary>The barcode box must always be ready for the next scan.</summary>
@@ -193,8 +199,7 @@ public partial class SalesWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "تعذر فتح الورديّة", MessageBoxButton.OK, MessageBoxImage.Error,
-                MessageBoxResult.OK, MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+            ArabicMessageBox.ShowError(ex.Message, "تعذر فتح الورديّة");
         }
     }
 
@@ -242,13 +247,8 @@ public partial class SalesWindow : Window
         }
 
         // No printer: show the receipt so the cashier can read it / print it later.
-        MessageBox.Show(
-            $"{print.Message}\n\n{receiptText}",
-            "الإيصال (معاينة)",
-            MessageBoxButton.OK,
-            MessageBoxImage.Information,
-            MessageBoxResult.OK,
-            MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+        // Long text: show the receipt body only, the printer message would drown it out.
+        ArabicMessageBox.Show(receiptText, "الإيصال (معاينة)");
     }
 
     /// <summary>Prints a small test slip so the cashier can verify paper width and Arabic shaping.</summary>
@@ -257,11 +257,14 @@ public partial class SalesWindow : Window
         var printer = ServiceProviderServiceExtensions.GetRequiredService<IReceiptPrinterService>(App.Services);
         var result = await printer.PrintTestAsync();
 
-        MessageBox.Show(result.Message, result.Succeeded ? "تمت الطباعة" : "تعذرت الطباعة",
-            MessageBoxButton.OK,
-            result.Succeeded ? MessageBoxImage.Information : MessageBoxImage.Warning,
-            MessageBoxResult.OK,
-            MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+        if (result.Succeeded)
+        {
+            ArabicMessageBox.Show(result.Message, "تمت الطباعة");
+        }
+        else
+        {
+            ArabicMessageBox.ShowWarning(result.Message, "تعذرت الطباعة");
+        }
 
         RefocusBarcode();
     }
@@ -316,8 +319,17 @@ public partial class SalesWindow : Window
         RefocusBarcode();
     }
 
+    private void OnFocusBarcodeRequested(object? sender, EventArgs e) => RefocusBarcode();
+
     protected override void OnClosed(EventArgs e)
     {
+        Loaded -= OnLoaded;
+        PreviewMouseDown -= OnPreviewMouseDownAnywhere;
+        _viewModel.ErrorSound = null;
+
+        // Detach every subscription: the view model outlives the window when a sale is completed.
+        _viewModel.FocusBarcodeRequested -= OnFocusBarcodeRequested;
+        _viewModel.HeldCartsRequested -= OnHeldCartsRequested;
         _viewModel.ShiftOpenRequested -= OnShiftOpenRequested;
         _viewModel.CheckoutRequested -= OnCheckoutRequested;
         _viewModel.ShiftCloseRequested -= OnShiftCloseRequested;
@@ -325,8 +337,21 @@ public partial class SalesWindow : Window
     }
 }
 
-/// <summary>Tiny wrapper so <see cref="SalesWindow"/> does not need the WinForms assembly.</summary>
+/// <summary>
+/// Error beep for a rejected scan. <c>Console.Beep</c> throws on machines without a console
+/// (a WinExe has none), and a failed beep must never break the checkout flow.
+/// </summary>
 internal static class SystemSounds
 {
-    public static void Beep() => Console.Beep();
+    public static void Beep()
+    {
+        try
+        {
+            Console.Beep();
+        }
+        catch
+        {
+            // No console attached: silence is an acceptable outcome for an alert tone.
+        }
+    }
 }

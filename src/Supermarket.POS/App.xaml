@@ -1,17 +1,13 @@
 <Application x:Class="Supermarket.POS.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:Supermarket.POS.Converters">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!-- Touch theme, then the converters shared with the admin application. -->
                 <ResourceDictionary Source="/Themes/PosTheme.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Supermarket.Wpf;component/Themes/Converters.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
-            <converters:BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-            <converters:InverseBooleanToVisibilityConverter x:Key="BoolToVisibilityInverse" />
-            <converters:EgpCurrencyConverter x:Key="EgpCurrency" />
-            <converters:InverseBooleanConverter x:Key="InverseBool" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,6 +1,4 @@
-using System.Globalization;
 using System.Windows;
-using System.Windows.Markup;
 using System.Windows.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,12 +7,13 @@ using Supermarket.Admin.Services;
 using Supermarket.Admin.ViewModels;
 using Supermarket.Admin.Views;
 using Supermarket.Core.DependencyInjection;
+using Supermarket.Wpf;
 
 namespace Supermarket.Admin;
 
 /// <summary>
-/// Composition root of the admin application. Builds the DI container, forces the whole
-/// process into the Arabic (Egypt) culture with an RTL flow direction and shows the shell.
+/// Composition root of the admin application: Arabic RTL culture, DI container, global error handling
+/// and the sign-in window.
 /// </summary>
 public partial class App : Application
 {
@@ -26,40 +25,40 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        // Arabic culture before any window is created so that dates, numbers and the
-        // RightToLeft layout behave correctly everywhere.
-        var culture = new CultureInfo("UTF-8");
-        CultureInfo.DefaultThreadCurrentCulture = culture;
-        CultureInfo.DefaultThreadCurrentUICulture = culture;
-        Thread.CurrentThread.CurrentCulture = culture;
-        Thread.CurrentThread.CurrentUICulture = culture;
+        // Arabic culture + Right-to-Left language metadata BEFORE the first window exists, so that
+        // dates, numbers and every element created afterwards are laid out correctly.
+        ArabicLayout.Configure();
 
-        // Every WPF element inherits RightToLeft from here, including dialogs created in code.
-        FrameworkElement.LanguageProperty.OverrideMetadata(
-            typeof(FrameworkElement),
-            new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(culture.IetfLanguageTag)));
+        // Also pin the Arabic window style to every window type of this assembly (see
+        // ArabicLayout.PinWindowStyle: an implicit Window style never reaches a derived window).
+        ArabicLayout.PinWindowStyle(this, typeof(App).Assembly);
 
+        // appsettings.json is the shipped default; appsettings.Local.json (git-ignored) and the
+        // environment variables let a machine override the SQL instance without editing the file.
         Configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
+            .AddEnvironmentVariables("SUPERMARKET_")
             .Build();
 
         var services = new ServiceCollection();
         ConfigureServices(services);
-        // ValidateScopes / ValidateOnBuild make a missing registration fail here, at start-up, with the
-        // exact type name — instead of a cryptic "Unable to resolve service" the first time a window opens.
+
+        // ValidateScopes / ValidateOnBuild turn a missing registration into a clear start-up error
+        // instead of a cryptic "Unable to resolve service" the first time a window opens.
         Services = services.BuildServiceProvider(new ServiceProviderOptions
         {
             ValidateScopes = true,
             ValidateOnBuild = true
         });
 
-        // Centralised unhandled exception handling: a crash shows an Arabic message instead of
-        // the default .NET dialog, and the application stays alive where possible.
+        // One place for unhandled exceptions: show an Arabic message and keep the shell alive.
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
-            MessageBox.Show(args.ExceptionObject?.ToString() ?? "خطأ غير معروف",
-                "خطأ غير متوقع", MessageBoxButton.OK, MessageBoxImage.Error);
+            ArabicMessageBox.ShowError(
+                args.ExceptionObject?.ToString() ?? "خطأ غير معروف",
+                "خطأ غير متوقع");
 
         base.OnStartup(e);
 
@@ -68,11 +67,12 @@ public partial class App : Application
         login.Show();
     }
 
+    /// <summary>Registers the shared core services and the admin-specific windows / view models.</summary>
     public static void ConfigureServices(IServiceCollection services)
     {
         services.AddSingleton(Configuration);
 
-        // Shared library: DbContext factory, services, hasher, current user holder.
+        // Shared library: database factory, business services, hasher, current-user holder.
         services.AddSupermarketCore(Configuration, "Admin");
 
         // UI services.
@@ -80,12 +80,12 @@ public partial class App : Application
         services.AddSingleton<AuthSession>();
         services.AddSingleton<NavigationService>();
 
-        // Windows.
+        // Shell.
         services.AddSingleton<LoginWindow>();
         services.AddSingleton<MainViewModel>();
         services.AddTransient<MainWindow>();
 
-        // View models (transient screens).
+        // One view model per page.
         services.AddTransient<LoginViewModel>();
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<ProductsViewModel>();
@@ -96,19 +96,18 @@ public partial class App : Application
         services.AddTransient<SalesAnalyticsViewModel>();
         services.AddTransient<UsersViewModel>();
         services.AddTransient<SettingsViewModel>();
+        services.AddTransient<ProductEditViewModel>();
+        services.AddTransient<SupplierEditViewModel>();
+        services.AddTransient<StockAdjustmentViewModel>();
     }
-
 
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        var logger = Services?.GetService<ILogger<App>>();
-        logger?.LogError(e.Exception, "Unhandled exception in the admin application");
+        Services?.GetService<ILogger<App>>()?.LogError(e.Exception, "Unhandled exception in the admin application");
 
-        MessageBox.Show(
+        ArabicMessageBox.ShowError(
             $"حدث خطأ غير متوقع:\n{e.Exception.Message}\n\nيمكنك متابعة العمل، وإذا تكرر الخطأ برجاء إبلاغ الدعم الفني.",
-            "خطأ",
-            MessageBoxButton.OK,
-            MessageBoxImage.Error);
+            "خطأ");
 
         e.Handled = true;
     }

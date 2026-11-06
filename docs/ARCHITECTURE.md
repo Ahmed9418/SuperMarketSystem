@@ -107,10 +107,10 @@ historical invoices keep resolving their references.
 
 | Layer | Rule |
 |---|---|
-| XAML | Arabic literals with `FlowDirection="RightToLeft"`; windows inherit it from the implicit `Window` style. |
-| Code | English identifiers, English XML comments. Arabic only appears in (a) user-facing status/validation messages produced by the services, (b) `Localization/AppStrings.cs`, (c) `EnumArabicExtensions`. |
-| Culture | `ar-EG` set on start-up for both threads **and** `FrameworkElement.Language`, so dates and numbers render correctly. |
-| Currency | `EgpCurrencyConverter` appends `ج.م` to every financial binding. |
+| XAML | Arabic literals; `FlowDirection="RightToLeft"` is declared **once** on the implicit `Window` style (`Admin/Themes/Controls.xaml`, `POS/Themes/PosTheme.xaml`) and inherited. Only Latin content (barcode, phone, e-mail, user name, receipt preview) opts back to `LeftToRight`. |
+| Code | English identifiers, English XML comments. Arabic only appears in (a) user-facing status/validation messages produced by the services, (b) `EnumArabicExtensions`. |
+| Culture | `AppCulture` (`Core/Localization/AppCulture.cs`): `ar-EG` cloned with `.`/`,` separators and Latin digits, applied to both threads and to `FrameworkElement.Language`. `AppCulture.Isolate()` wraps Latin identifiers (barcodes, invoice numbers) with LRM marks, exposed as the `RtlIsolation` converter. |
+| Currency | `MoneyConverter` (in `Supermarket.Wpf`) appends `ج.م` to every financial binding. |
 
 ## 6. Why the design-time migrations project exists
 

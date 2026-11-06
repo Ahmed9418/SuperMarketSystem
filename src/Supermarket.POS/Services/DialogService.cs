@@ -1,11 +1,10 @@
-using System.Windows;
-using Supermarket.POS.Views;
+using Supermarket.Wpf;
 
 namespace Supermarket.POS.Services;
 
 /// <summary>
-/// Message boxes for the POS, always right aligned because the cashier reads Arabic.
-/// Kept behind an interface so the view models stay unit testable.
+/// Message boxes for the POS, always right-aligned because the cashier reads Arabic.
+/// Kept behind an interface so the view models stay unit-testable.
 /// </summary>
 public interface IDialogService
 {
@@ -24,24 +23,21 @@ public interface IDialogService
 /// <inheritdoc />
 public sealed class DialogService : IDialogService
 {
-    private const MessageBoxOptions Rtl = MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign;
-
     public void ShowInformation(string message, string? title = null) =>
-        MessageBox.Show(message, title ?? "معلومة", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.OK, Rtl);
+        ArabicMessageBox.Show(message, title ?? "معلومة");
 
     public void ShowWarning(string message, string? title = null) =>
-        MessageBox.Show(message, title ?? "تنبيه", MessageBoxButton.OK, MessageBoxImage.Warning, MessageBoxResult.OK, Rtl);
+        ArabicMessageBox.ShowWarning(message, title ?? "تنبيه");
 
     public void ShowError(string message, string? title = null) =>
-        MessageBox.Show(message, title ?? "خطأ", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK, Rtl);
+        ArabicMessageBox.ShowError(message, title ?? "خطأ");
 
     public bool Confirm(string message, string? title = null) =>
-        MessageBox.Show(message, title ?? "تأكيد", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No, Rtl)
-        == MessageBoxResult.Yes;
+        ArabicMessageBox.Confirm(message, title ?? "تأكيد");
 
     public string? Prompt(string message, string? title = null, string? defaultValue = null)
     {
-        var dialog = new InputDialog(message, title ?? "إدخال", defaultValue);
+        var dialog = new Views.InputDialog(message, title ?? "إدخال", defaultValue);
         return dialog.ShowDialog() == true ? dialog.InputText : null;
     }
 }

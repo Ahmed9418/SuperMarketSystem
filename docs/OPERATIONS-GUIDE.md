@@ -122,7 +122,7 @@ dotnet run --project src\Supermarket.POS         # cashier / Cashier@123  (PIN 2
 | business rule (pricing, stock, shift math) | `src/Supermarket.Core/Services/` |
 | a screen's behaviour | `src/Supermarket.Admin/ViewModels/…` or `src/Supermarket.POS/ViewModels/…` |
 | a screen's layout/colours | the matching `Views/…View.xaml`, palette in `Themes/Colors.xaml` (Admin) / `PosTheme.xaml` (POS) |
-| Arabic wording of a screen | the `.xaml` (labels) — shared vocabulary in `Core/Localization/AppStrings.cs` |
+| Arabic wording of a screen | the `.xaml` (labels) and the view model messages; shared culture/bidi helpers in `Core/Localization/AppCulture.cs` |
 | receipt layout (80 mm) | `Core/Services/ReceiptFormatter.cs` (text) + `POS/Printing/` (raster) |
 | permission keys and role defaults | `Core/Common/AppPermissions.cs` |
 | analytics / reports numbers | `Core/Services/ReportService.cs` |

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Shared WPF presentation helpers used by BOTH shells (admin + POS):
+      * Converters (money, visibility, inverse boolean) — one implementation instead of two copies.
+      * ArabicLayout — installs the Right-to-Left flow / culture / language metadata of the process.
+
+    Target framework note: net8.0-windows (without the 10.0.19041 platform version) so that the
+    Windows-only control library can be referenced from the test projects too, which keeps the
+    build graph free of duplicate target-framework errors.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Supermarket.Wpf</RootNamespace>
+    <AssemblyName>Supermarket.Wpf</AssemblyName>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Supermarket.Core\Supermarket.Core.csproj" />
+  </ItemGroup>
+
+</Project>

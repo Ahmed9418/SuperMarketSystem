@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using Supermarket.Core.DTOs;
+using Supermarket.Wpf;
 
 namespace Supermarket.POS.Views;
 
@@ -36,8 +37,7 @@ public partial class HeldCartsWindow : Window
     {
         if (HeldGrid.SelectedItem is not HeldCartDto cart)
         {
-            MessageBox.Show("اختر سلة من القائمة أولاً", "تنبيه", MessageBoxButton.OK,
-                MessageBoxImage.Warning, MessageBoxResult.OK, MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
+            ArabicMessageBox.ShowWarning("اختر سلة من القائمة أولاً", "تنبيه");
             return;
         }
 
@@ -53,15 +53,9 @@ public partial class HeldCartsWindow : Window
             return;
         }
 
-        var answer = MessageBox.Show(
-            $"هل تريد حذف السلة المعلقة ({cart.Label})؟\nلا يمكن التراجع عن هذه العملية.",
-            "تأكيد الحذف",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Question,
-            MessageBoxResult.No,
-            MessageBoxOptions.RtlReading | MessageBoxOptions.RightAlign);
-
-        if (answer != MessageBoxResult.Yes)
+        if (!ArabicMessageBox.Confirm(
+                $"هل تريد حذف السلة المعلقة ({cart.Label})؟\nلا يمكن التراجع عن هذه العملية.",
+                "تأكيد الحذف"))
         {
             return;
         }

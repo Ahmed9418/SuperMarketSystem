@@ -15,11 +15,34 @@ public sealed partial class LoginViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
     private readonly IUserAdminService _users;
+    private readonly IStoreSettingsService _settings;
 
-    public LoginViewModel(IAuthService authService, IUserAdminService users)
+    public LoginViewModel(IAuthService authService, IUserAdminService users, IStoreSettingsService settings)
     {
         _authService = authService;
         _users = users;
+        _settings = settings;
+    }
+
+    /// <summary>Store name shown on the sign-in card; falls back to a neutral label.</summary>
+    [ObservableProperty]
+    private string storeName = "سوبر ماركت";
+
+    /// <summary>Loads the store name; a database hiccup must not block the sign-in screen.</summary>
+    public async Task LoadStoreNameAsync()
+    {
+        try
+        {
+            var settings = await _settings.GetAsync();
+            if (!string.IsNullOrWhiteSpace(settings.StoreName))
+            {
+                StoreName = settings.StoreName;
+            }
+        }
+        catch
+        {
+            // Ignore: the sign-in attempt itself reports the connectivity problem.
+        }
     }
 
     /// <summary>Effective permission keys of the signed-in cashier (role defaults + overrides).</summary>

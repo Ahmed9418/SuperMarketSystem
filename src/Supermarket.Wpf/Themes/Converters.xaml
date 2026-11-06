@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv="clr-namespace:Supermarket.Wpf.Converters;assembly=Supermarket.Wpf">
+
+    <!--
+        ============================================================================
+        Converters shared by the admin and the POS applications.
+
+        The keys keep the names the views already use, so a view only needs to merge
+        this dictionary instead of declaring the converters again:
+
+            EgpCurrency        money with the ج.م suffix
+            BoolToVisibility   true  -> Visible
+            BoolToVisibilityInverse / InverseBoolToVisibility   false -> Visible
+            InverseBoolean / InverseBool                       negates a bool
+            EmptyStringToVisibility / NullToVisibility          hides null / empty
+            EnumArabic         domain enum -> Arabic caption
+            RtlIsolation       keeps a Latin/numeric value LTR inside Arabic text
+        ============================================================================
+    -->
+    <conv:MoneyConverter x:Key="EgpCurrency" />
+    <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+    <conv:InverseBoolToVisibilityConverter x:Key="BoolToVisibilityInverse" />
+    <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
+    <conv:InverseBoolConverter x:Key="InverseBoolean" />
+    <conv:InverseBoolConverter x:Key="InverseBool" />
+    <conv:NotEmptyToVisibilityConverter x:Key="EmptyStringToVisibility" />
+    <conv:NotEmptyToVisibilityConverter x:Key="NullToVisibility" />
+    <conv:EnumArabicConverter x:Key="EnumArabic" />
+    <conv:RtlIsolationConverter x:Key="RtlIsolation" />
+
+</ResourceDictionary>

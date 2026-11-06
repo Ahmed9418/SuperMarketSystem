@@ -101,7 +101,7 @@ public sealed class AuthAndSessionTests : IDisposable
     [Fact]
     public async Task LoginViewModel_FailedSignIn_SetsErrorMessage()
     {
-        var vm = new LoginViewModel(_fixture.AuthService, _fixture.UserAdmin, _fixture.Session, _fixture.Dialogs)
+        var vm = new LoginViewModel(_fixture.AuthService, _fixture.UserAdmin, _fixture.StoreSettings, _fixture.Session, _fixture.Dialogs)
         {
             UserName = "admin"
         };
@@ -119,7 +119,7 @@ public sealed class AuthAndSessionTests : IDisposable
     [Fact]
     public async Task LoginViewModel_SuccessfulSignIn_RaisesEventAndPopulatesSession()
     {
-        var vm = new LoginViewModel(_fixture.AuthService, _fixture.UserAdmin, _fixture.Session, _fixture.Dialogs)
+        var vm = new LoginViewModel(_fixture.AuthService, _fixture.UserAdmin, _fixture.StoreSettings, _fixture.Session, _fixture.Dialogs)
         {
             UserName = "admin"
         };

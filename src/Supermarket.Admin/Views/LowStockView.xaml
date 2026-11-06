@@ -1,7 +1,6 @@
 <UserControl x:Class="Supermarket.Admin.Views.LowStockView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FlowDirection="RightToLeft">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -20,7 +19,8 @@
 
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="نواقص المخزون" Style="{StaticResource PageTitleTextStyle}" />
-                    <TextBlock Text="{Binding SummaryText}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,0" />
+                    <TextBlock Text="{Binding SummaryText}" Foreground="{StaticResource TextSecondaryBrush}"
+                               TextWrapping="Wrap" Margin="0,6,0,0" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Margin="24,0" VerticalAlignment="Center">
@@ -39,7 +39,7 @@
         <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="0">
             <DataGrid ItemsSource="{Binding Products}">
                 <DataGrid.RowStyle>
-                    <Style TargetType="{x:Type DataGridRow}">
+                    <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource DataGridRowStyle}">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsOutOfStock}" Value="True">
                                 <Setter Property="Background" Value="{StaticResource DangerLightBrush}" />
@@ -49,15 +49,18 @@
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="اسم المنتج" Binding="{Binding Name}" Width="*" MinWidth="200" />
-                    <DataGridTextColumn Header="البار كود" Binding="{Binding Barcode}" Width="140" />
+                    <DataGridTextColumn Header="البار كود" Width="140"
+                                        Binding="{Binding Barcode, Converter={StaticResource RtlIsolation}}" />
                     <DataGridTextColumn Header="القسم" Binding="{Binding CategoryName}" Width="120" />
                     <DataGridTextColumn Header="المورد" Binding="{Binding SupplierName}" Width="150" />
-                    <DataGridTextColumn Header="الكمية الحالية" Binding="{Binding StockQuantity, StringFormat={}{0:N2}}" Width="110" />
-                    <DataGridTextColumn Header="حد الطلب" Binding="{Binding MinimumStockLevel, StringFormat={}{0:N2}}" Width="100" />
-                    <DataGridTextColumn Header="الكمية المطلوبة" Binding="{Binding ReorderQuantity, StringFormat={}{0:N2}}" Width="120" />
-                    <DataGridTextColumn Header="تكلفة التوريد"
-                                        Binding="{Binding StockValue, Converter={StaticResource EgpCurrency}}"
-                                        Width="140" />
+                    <DataGridTextColumn Header="الكمية الحالية" Width="110"
+                                        Binding="{Binding StockQuantity, StringFormat={}{0:N2}}" />
+                    <DataGridTextColumn Header="حد الطلب" Width="100"
+                                        Binding="{Binding MinimumStockLevel, StringFormat={}{0:N2}}" />
+                    <DataGridTextColumn Header="الكمية المطلوبة" Width="120"
+                                        Binding="{Binding ReorderQuantity, StringFormat={}{0:N2}}" />
+                    <DataGridTextColumn Header="تكلفة التوريد" Width="140"
+                                        Binding="{Binding StockValue, Converter={StaticResource EgpCurrency}}" />
                 </DataGrid.Columns>
             </DataGrid>
         </Border>

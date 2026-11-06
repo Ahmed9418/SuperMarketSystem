@@ -1,57 +1,105 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- ============================================================
-         Implicit styles for the whole admin shell.
-         Everything is authored for a RightToLeft flow; the explicit
-         FlowDirection on the windows guarantees it for hosted dialogs.
-         ============================================================ -->
+    <!--
+        ============================================================================
+        Implicit styles for the whole admin shell.
 
-    <Style TargetType="{x:Type Window}">
+        RTL RULE (applies to this file and to every view):
+          * FlowDirection = RightToLeft is declared ONCE, below, on the Window style.
+            Controls inherit it, so a view never repeats it and alignment properties
+            keep their logical meaning ("Left" = end of the line in Arabic).
+          * LeftToRight is used only for fields whose content is Latin (barcodes,
+            user names, phone numbers, printer names) through LatinInputStyle.
+        ============================================================================
+    -->
+
+    <!-- ============================================================== Window -->
+    <!--
+        Keyed so a derived window can opt in:  Style="{StaticResource AppWindowStyle}".
+        WPF matches an implicit (keyless) style by EXACT type, and every window of this
+        application is a derived class (LoginWindow, MainWindow, ...), so the implicit
+        registration below is only the fallback for a plain Window.
+        ArabicLayout.PinWindowStyle() binds this style to every window class at start-up.
+    -->
+    <Style x:Key="AppWindowStyle" TargetType="{x:Type Window}">
         <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
         <Setter Property="Background" Value="{StaticResource CanvasBrush}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+        <Setter Property="UseLayoutRounding" Value="True" />
     </Style>
 
+    <Style TargetType="{x:Type Window}" BasedOn="{StaticResource AppWindowStyle}" />
+
+    <!-- ========================================================== Typography -->
     <Style TargetType="{x:Type TextBlock}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
         <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="None" />
     </Style>
 
     <Style TargetType="{x:Type Label}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="Padding" Value="2,2,2,4" />
     </Style>
 
-    <!-- ============================================================ TextBox -->
-    <Style TargetType="{x:Type TextBox}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
+    <!-- =============================================================== Inputs -->
+    <!-- Base for every text input: defined once, reused by the two styles below. -->
+    <Style x:Key="InputBaseStyle" TargetType="{x:Type TextBox}">
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
         <Setter Property="Height" Value="38" />
         <Setter Property="Padding" Value="8,6" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <!-- Explicit colours: without them the text inherits an ambiguous foreground and can end up
+        <!-- Explicit colours: without them the text can inherit an ambiguous foreground and become
              invisible on some Windows themes / high-contrast settings. -->
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="CaretBrush" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="SelectionBrush" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{StaticResource TableStripeBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
-    <!-- ========================================================= PasswordBox -->
+    <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource InputBaseStyle}" />
+
+    <!-- Latin content: barcode, user name, phone, e-mail, printer name. Typed left to right. -->
+    <Style x:Key="LatinInputStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource InputBaseStyle}">
+        <Setter Property="FlowDirection" Value="LeftToRight" />
+        <Setter Property="TextAlignment" Value="Left" />
+        <Setter Property="FontFamily" Value="Consolas, Segoe UI, Tahoma" />
+    </Style>
+
+    <!-- Latin password: user names and passwords are typed left to right. -->
+    <Style x:Key="LatinPasswordStyle" TargetType="{x:Type PasswordBox}">
+        <Setter Property="FlowDirection" Value="LeftToRight" />
+        <Setter Property="TextAlignment" Value="Left" />
+        <Setter Property="FontFamily" Value="Consolas, Segoe UI, Tahoma" />
+    </Style>
+
+    <!-- Numeric content: prices and quantities. Right aligned (Arabic reading order), Latin digits. -->
+    <Style x:Key="NumericInputStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource InputBaseStyle}">
+        <Setter Property="TextAlignment" Value="Left" />
+        <Setter Property="FontFamily" Value="Consolas, Segoe UI, Tahoma" />
+        <Setter Property="MaxLength" Value="14" />
+    </Style>
+
     <Style TargetType="{x:Type PasswordBox}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
         <Setter Property="Height" Value="38" />
@@ -64,9 +112,7 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
 
-    <!-- ========================================================== ComboBox -->
     <Style TargetType="{x:Type ComboBox}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
         <Setter Property="Height" Value="34" />
@@ -78,14 +124,27 @@
     </Style>
 
     <Style TargetType="{x:Type ComboBoxItem}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="Padding" Value="6,4" />
     </Style>
 
-    <!-- ========================================================== Buttons -->
+    <Style TargetType="{x:Type CheckBox}">
+        <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,2" />
+    </Style>
+
+    <Style TargetType="{x:Type DatePicker}">
+        <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- ============================================================== Buttons -->
     <Style x:Key="BaseButtonStyle" TargetType="{x:Type Button}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
         <Setter Property="FontWeight" Value="SemiBold" />
@@ -100,6 +159,8 @@
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Border x:Name="Bd"
                             Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="6"
                             SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="Center"
@@ -144,9 +205,23 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
 
-    <!-- ========================================================== DataGrid -->
+    <!-- ================================================================ Grids -->
+    <Style x:Key="DataGridRowStyle" TargetType="{x:Type DataGridRow}">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="Height" Value="38" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource PrimaryLightBrush}" />
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+                <Setter Property="Foreground" Value="White" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <Style TargetType="{x:Type DataGrid}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
@@ -167,28 +242,11 @@
         <Setter Property="EnableRowVirtualization" Value="True" />
         <Setter Property="ColumnHeaderHeight" Value="40" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="RowStyle">
-            <Setter.Value>
-                <Style TargetType="{x:Type DataGridRow}">
-                    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-                    <Style.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{StaticResource PrimaryLightBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
-                            <Setter Property="Foreground" Value="White" />
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="RowStyle" Value="{StaticResource DataGridRowStyle}" />
     </Style>
 
-    <!-- Header cell: a ControlTemplate so the caption keeps the white foreground in every theme
-         (the plain font-based style lost it to the inherited/dark TextBlock colour). -->
+    <!-- Header cell: a ControlTemplate so the caption keeps its white foreground in every theme. -->
     <Style TargetType="{x:Type DataGridColumnHeader}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
@@ -221,7 +279,6 @@
     </Style>
 
     <Style TargetType="{x:Type DataGridCell}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Padding" Value="8,0" />
@@ -237,9 +294,8 @@
         </Setter>
     </Style>
 
-    <!-- ========================================================== GroupBox -->
+    <!-- ============================================================ Containers -->
     <Style TargetType="{x:Type GroupBox}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource PrimaryDarkBrush}" />
@@ -248,7 +304,6 @@
         <Setter Property="Margin" Value="0,0,0,12" />
     </Style>
 
-    <!-- ================================================= Card / container -->
     <Style x:Key="CardBorderStyle" TargetType="{x:Type Border}">
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
@@ -258,6 +313,26 @@
         <Setter Property="SnapsToDevicePixels" Value="True" />
     </Style>
 
+    <Style TargetType="{x:Type ToolTip}">
+        <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}" />
+        <Setter Property="FlowDirection" Value="RightToLeft" />
+    </Style>
+
+    <Style TargetType="{x:Type TabControl}">
+        <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+    </Style>
+
+    <Style TargetType="{x:Type TabItem}">
+        <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="14,6" />
+    </Style>
+
+    <!-- ============================================================ Typography -->
     <Style x:Key="CardTitleTextStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="FontSize" Value="{StaticResource FontSizeMedium}" />
         <Setter Property="FontWeight" Value="Bold" />
@@ -271,11 +346,24 @@
         <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
 
-    <!-- Section title used at the top of every screen -->
     <Style x:Key="PageTitleTextStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="FontSize" Value="{StaticResource FontSizeLarge}" />
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="{StaticResource PrimaryDarkBrush}" />
+    </Style>
+
+    <!-- Persian/Arabic error text used under the forms -->
+    <Style x:Key="ErrorTextStyle" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Margin" Value="0,4,0,8" />
+        <Setter Property="Visibility" Value="{Binding ErrorMessage, Converter={StaticResource EmptyStringToVisibility}}" />
+    </Style>
+
+    <!-- Standard "label above field" block used by every form -->
+    <Style x:Key="FieldStackStyle" TargetType="{x:Type StackPanel}">
+        <Setter Property="Margin" Value="0,0,0,12" />
     </Style>
 
 </ResourceDictionary>

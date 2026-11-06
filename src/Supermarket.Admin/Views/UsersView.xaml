@@ -1,7 +1,6 @@
 <UserControl x:Class="Supermarket.Admin.Views.UsersView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FlowDirection="RightToLeft">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -20,29 +19,29 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                <StackPanel Grid.Column="0" Width="240" Margin="0,0,12,0">
                     <TextBlock Text="بحث (الاسم / المستخدم / الهاتف)" Style="{StaticResource FieldLabelTextStyle}" />
-                    <TextBox Width="240" Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                <StackPanel Grid.Column="1" Width="150" Margin="0,0,12,0">
                     <TextBlock Text="الدور" Style="{StaticResource FieldLabelTextStyle}" />
-                    <ComboBox Width="150" ItemsSource="{Binding RoleFilters}" SelectedItem="{Binding RoleFilter}" />
+                    <ComboBox ItemsSource="{Binding RoleFilters}" SelectedItem="{Binding RoleFilter}" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom">
-                    <Button Content="➕ مستخدم جديد" Width="150" Style="{StaticResource BaseButtonStyle}"
-                            Command="{Binding AddUserCommand}" Margin="0,0,8,0" />
+                    <Button Content="➕ مستخدم جديد" Width="150" Margin="0,0,8,0"
+                            Command="{Binding AddUserCommand}" />
                     <Button Content="🔄 تحديث" Width="110" Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding LoadCommand}" />
                 </StackPanel>
 
-                <TextBlock Grid.Column="3" VerticalAlignment="Bottom" Margin="0,0,0,12" FontSize="12"
+                <TextBlock Grid.Column="3" VerticalAlignment="Bottom" Margin="0,0,0,10" FontSize="12"
                            Foreground="{StaticResource TextSecondaryBrush}" Text="{Binding CurrentUserHint}" />
             </Grid>
         </Border>
 
-        <!-- Grid -->
+        <!-- Grid + row actions -->
         <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="6">
             <Grid>
                 <Grid.RowDefinitions>
@@ -52,35 +51,38 @@
 
                 <DataGrid Grid.Row="0" x:Name="UsersGrid" ItemsSource="{Binding FilteredUsers}"
                           SelectedItem="{Binding SelectedUser}"
-                          IsReadOnly="True" AutoGenerateColumns="False"
                           MouseDoubleClick="OnRowDoubleClick">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="الاسم الكامل" Binding="{Binding FullName}" Width="*" />
-                        <DataGridTextColumn Header="اسم المستخدم" Binding="{Binding UserName}" Width="160" />
+                        <DataGridTextColumn Header="اسم المستخدم" Width="160"
+                                            Binding="{Binding UserName, Converter={StaticResource RtlIsolation}}" />
                         <DataGridTextColumn Header="الدور" Binding="{Binding RoleName}" Width="130" />
-                        <DataGridTextColumn Header="الهاتف" Binding="{Binding PhoneNumber}" Width="130" />
+                        <DataGridTextColumn Header="الهاتف" Width="130"
+                                            Binding="{Binding PhoneNumber, Converter={StaticResource RtlIsolation}}" />
                         <DataGridTextColumn Header="الحالة" Binding="{Binding StatusName}" Width="90" />
-                        <DataGridTextColumn Header="الصلاحيات الممنوحة"
-                                            Binding="{Binding GrantedPermissionCount}" Width="140" />
+                        <DataGridTextColumn Header="الصلاحيات الممنوحة" Binding="{Binding GrantedPermissionCount}" Width="140" />
                         <DataGridTextColumn Header="مخصصة" Binding="{Binding HasCustomPermissions}" Width="90" />
-                        <DataGridTextColumn Header="آخر دخول"
-                                            Binding="{Binding LastLoginAtUtc, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}"
-                                            Width="150" />
+                        <DataGridTextColumn Header="آخر دخول" Width="150"
+                                            Binding="{Binding LastLoginAtUtc, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" />
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4,10,4,2">
-                    <Button Content="✏ تعديل البيانات" Width="150" Style="{StaticResource BaseButtonStyle}"
-                            Command="{Binding EditUserCommand}" Margin="0,0,8,0" />
-                    <Button Content="🔐 الصلاحيات" Width="140" Style="{StaticResource SecondaryButtonStyle}"
-                            Command="{Binding EditPermissionsCommand}" Margin="0,0,8,0" />
-                    <Button Content="🔑 كلمة المرور" Width="140" Style="{StaticResource SecondaryButtonStyle}"
-                            Command="{Binding ResetPasswordCommand}" Margin="0,0,8,0" />
-                    <Button Content="🔢 الرقم السري" Width="140" Style="{StaticResource SecondaryButtonStyle}"
-                            Command="{Binding ResetPinCommand}" Margin="0,0,8,0" />
-                    <Button Content="⏻ إيقاف / تنشيط" Width="150" Style="{StaticResource WarningButtonStyle}"
+                <WrapPanel Grid.Row="1" Margin="4,10,4,2">
+                    <Button Content="✏ تعديل البيانات" Width="150" Margin="0,0,8,4"
+                            Command="{Binding EditUserCommand}" />
+                    <Button Content="🔐 الصلاحيات" Width="140" Margin="0,0,8,4"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding EditPermissionsCommand}" />
+                    <Button Content="🔑 كلمة المرور" Width="140" Margin="0,0,8,4"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding ResetPasswordCommand}" />
+                    <Button Content="🔢 الرقم السري" Width="140" Margin="0,0,8,4"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding ResetPinCommand}" />
+                    <Button Content="⏻ إيقاف / تنشيط" Width="150" Margin="0,0,0,4"
+                            Style="{StaticResource WarningButtonStyle}"
                             Command="{Binding ToggleActiveCommand}" />
-                </StackPanel>
+                </WrapPanel>
             </Grid>
         </Border>
 

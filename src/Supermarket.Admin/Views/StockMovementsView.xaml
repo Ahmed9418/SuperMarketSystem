@@ -1,7 +1,6 @@
 <UserControl x:Class="Supermarket.Admin.Views.StockMovementsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FlowDirection="RightToLeft">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -14,37 +13,35 @@
         <!-- ============================== Filters ============================== -->
         <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
             <StackPanel>
-                <TextBlock Text="حركة المخزون (كارت الصنف)" Style="{StaticResource PageTitleTextStyle}" Margin="0,0,0,12" />
+                <TextBlock Text="حركة المخزون (كارت الصنف)" Style="{StaticResource PageTitleTextStyle}"
+                           Margin="0,0,0,12" />
 
                 <WrapPanel>
-                    <StackPanel Margin="0,0,12,0">
+                    <StackPanel Width="240" Margin="0,0,12,0">
                         <TextBlock Text="بحث باسم المنتج أو البار كود" Style="{StaticResource FieldLabelTextStyle}" />
-                        <TextBox Width="240" Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged, Delay=150}" />
+                        <TextBox Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged, Delay=150}" />
                     </StackPanel>
 
-                    <StackPanel Margin="0,0,12,0">
+                    <StackPanel Width="170" Margin="0,0,12,0">
                         <TextBlock Text="نوع الحركة" Style="{StaticResource FieldLabelTextStyle}" />
-                        <ComboBox Width="170"
-                                  ItemsSource="{Binding MovementTypes}"
+                        <ComboBox ItemsSource="{Binding MovementTypes}"
                                   DisplayMemberPath="Caption"
                                   SelectedItem="{Binding SelectedMovementType}" />
                     </StackPanel>
 
-                    <StackPanel Margin="0,0,12,0">
+                    <StackPanel Width="150" Margin="0,0,12,0">
                         <TextBlock Text="من تاريخ" Style="{StaticResource FieldLabelTextStyle}" />
-                        <DatePicker Width="150" SelectedDate="{Binding FromDate}" />
+                        <DatePicker SelectedDate="{Binding FromDate}" />
                     </StackPanel>
 
-                    <StackPanel Margin="0,0,12,0">
+                    <StackPanel Width="150" Margin="0,0,12,0">
                         <TextBlock Text="إلى تاريخ" Style="{StaticResource FieldLabelTextStyle}" />
-                        <DatePicker Width="150" SelectedDate="{Binding ToDate}" />
+                        <DatePicker SelectedDate="{Binding ToDate}" />
                     </StackPanel>
 
-                    <StackPanel VerticalAlignment="Bottom" Margin="0,0,12,0">
-                        <CheckBox Content="الوارد فقط" IsChecked="{Binding InboundOnly}"
-                                  FlowDirection="RightToLeft" Height="20" Margin="0,0,0,4" />
-                        <CheckBox Content="الصادر فقط" IsChecked="{Binding OutboundOnly}"
-                                  FlowDirection="RightToLeft" Height="20" />
+                    <StackPanel VerticalAlignment="Bottom" Margin="0,0,12,4">
+                        <CheckBox Content="الوارد فقط" IsChecked="{Binding InboundOnly}" />
+                        <CheckBox Content="الصادر فقط" IsChecked="{Binding OutboundOnly}" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
@@ -86,7 +83,7 @@
         <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="0">
             <DataGrid ItemsSource="{Binding Movements}">
                 <DataGrid.RowStyle>
-                    <Style TargetType="{x:Type DataGridRow}">
+                    <Style TargetType="{x:Type DataGridRow}" BasedOn="{StaticResource DataGridRowStyle}">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding IsInbound}" Value="True">
                                 <Setter Property="Background" Value="{StaticResource SuccessLightBrush}" />
@@ -95,19 +92,18 @@
                     </Style>
                 </DataGrid.RowStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="التاريخ"
-                                        Binding="{Binding CreatedAtUtc, StringFormat={}{0:dd/MM/yyyy HH:mm}}"
-                                        Width="140" />
+                    <DataGridTextColumn Header="التاريخ" Width="140"
+                                        Binding="{Binding CreatedAtUtc, StringFormat={}{0:dd/MM/yyyy HH:mm}}" />
                     <DataGridTextColumn Header="اسم المنتج" Binding="{Binding ProductName}" Width="*" MinWidth="200" />
-                    <DataGridTextColumn Header="البار كود" Binding="{Binding Barcode}" Width="140" />
+                    <DataGridTextColumn Header="البار كود" Width="140"
+                                        Binding="{Binding Barcode, Converter={StaticResource RtlIsolation}}" />
                     <DataGridTextColumn Header="نوع الحركة" Binding="{Binding MovementTypeArabic}" Width="120" />
                     <DataGridTextColumn Header="الكمية" Width="100"
                                         Binding="{Binding Quantity, StringFormat={}{0:N2}}" />
                     <DataGridTextColumn Header="الرصيد بعد الحركة" Width="130"
                                         Binding="{Binding BalanceAfter, StringFormat={}{0:N2}}" />
-                    <DataGridTextColumn Header="قيمة الحركة"
-                                        Binding="{Binding MovementValue, Converter={StaticResource EgpCurrency}}"
-                                        Width="130" />
+                    <DataGridTextColumn Header="قيمة الحركة" Width="130"
+                                        Binding="{Binding MovementValue, Converter={StaticResource EgpCurrency}}" />
                     <DataGridTextColumn Header="المستند" Binding="{Binding ReferenceNumber}" Width="130" />
                     <DataGridTextColumn Header="السبب" Binding="{Binding Reason}" Width="200" />
                     <DataGridTextColumn Header="بواسطة" Binding="{Binding PerformedBy}" Width="110" />
@@ -123,13 +119,13 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" Text="{Binding StatusMessage}"
-                       Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                       Foreground="{StaticResource TextSecondaryBrush}" />
 
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button Content="السابق" Style="{StaticResource SecondaryButtonStyle}" Width="90"
                         IsEnabled="{Binding HasPreviousPage}"
                         Command="{Binding PreviousPageCommand}" />
-                <TextBlock Text="{Binding PageNumber, StringFormat='صفحة {0}'}" Margin="12,0" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding PageNumber, StringFormat='صفحة {0}'}" Margin="12,0" />
                 <Button Content="التالي" Style="{StaticResource SecondaryButtonStyle}" Width="90"
                         IsEnabled="{Binding HasNextPage}"
                         Command="{Binding NextPageCommand}" />

@@ -12,12 +12,12 @@ public sealed class MainViewModelTests : IDisposable
     public void Dispose() => _fixture.Dispose();
 
     [Fact]
-    public void MainViewModel_InitialState_NavigatesToDashboard()
+    public async Task MainViewModel_InitialState_NavigatesToDashboard()
     {
         _fixture.SignInAsAdmin();
         var vm = _fixture.ServiceProvider.GetRequiredService<MainViewModel>();
 
-        vm.Initialize();
+        await vm.InitializeAsync();
 
         Assert.IsType<DashboardViewModel>(_fixture.Navigation.CurrentViewModel);
         Assert.Equal("لوحة التحكم", vm.CurrentPageTitle);
