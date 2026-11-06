@@ -3,24 +3,33 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using Supermarket.Admin.Services;
 using Supermarket.Core.Common;
+using Supermarket.Core.Interfaces;
+using Supermarket.Core.Localization;
 
 namespace Supermarket.Admin.ViewModels;
 
 /// <summary>
-/// Shell of the admin application: owns the navigation service and the menu commands.
-/// Every page is resolved from the DI container on demand, which keeps start-up time short.
+/// Shell of the admin application: owns the navigation and the menu commands.
+/// Every page is resolved from the DI container on demand, which keeps start-up fast.
 /// </summary>
 public sealed partial class MainViewModel : ObservableObject
 {
     private readonly IServiceProvider _services;
     private readonly AuthSession _session;
     private readonly IDialogService _dialogs;
+    private readonly IStoreSettingsService _settings;
 
-    public MainViewModel(IServiceProvider services, AuthSession session, IDialogService dialogs, NavigationService navigation)
+    public MainViewModel(
+        IServiceProvider services,
+        AuthSession session,
+        IDialogService dialogs,
+        NavigationService navigation,
+        IStoreSettingsService settings)
     {
         _services = services;
         _session = session;
         _dialogs = dialogs;
+        _settings = settings;
         Navigation = navigation;
 
         Navigation.PropertyChanged += (_, e) =>
@@ -38,7 +47,15 @@ public sealed partial class MainViewModel : ObservableObject
 
     public string RoleName => _session.RoleNameArabic;
 
-    public string StoreName => "سوبر ماركت الأمانة";
+    /// <summary>Store name from the settings table (falls back to the seeded default until loaded).</summary>
+    [ObservableProperty]
+    private string storeName = "سوبر ماركت الأمانة";
+
+    /// <summary>Today's date, shown in the header. Latin digits keep it readable next to Arabic labels.</summary>
+    public string TodayText => DateTime.Now.ToString("dd/MM/yyyy", AppCulture.Culture);
+
+    [ObservableProperty]
+    private bool isBusy;
 
     /// <summary>Arabic title shown in the shell header for the active page.</summary>
     public string CurrentPageTitle => Navigation.CurrentViewModel switch
@@ -55,37 +72,60 @@ public sealed partial class MainViewModel : ObservableObject
         _ => "لوحة التحكم"
     };
 
-    /// <summary>Loads the dashboard as the first page.</summary>
-    public void Initialize() => NavigateToDashboard();
+    /// <summary>Loads the store header and opens the dashboard as the first page.</summary>
+    public async Task InitializeAsync()
+    {
+        await LoadStoreNameAsync();
+        NavigateToDashboard();
+    }
+
+    private async Task LoadStoreNameAsync()
+    {
+        try
+        {
+            var settings = await _settings.GetAsync();
+            if (!string.IsNullOrWhiteSpace(settings.StoreName))
+            {
+                StoreName = settings.StoreName;
+            }
+        }
+        catch
+        {
+            // A missing settings row must never block the shell: the seeded name stays.
+        }
+    }
 
     [RelayCommand]
-    private void NavigateToDashboard() => Navigation.NavigateTo(_services.GetRequiredService<DashboardViewModel>());
+    private void NavigateToDashboard() => Show<DashboardViewModel>();
 
     [RelayCommand]
-    private void NavigateToProducts() => Navigation.NavigateTo(_services.GetRequiredService<ProductsViewModel>());
+    private void NavigateToProducts() => Show<ProductsViewModel>();
 
     [RelayCommand]
-    private void NavigateToSuppliers() => Navigation.NavigateTo(_services.GetRequiredService<SuppliersViewModel>());
+    private void NavigateToSuppliers() => Show<SuppliersViewModel>();
 
     [RelayCommand]
-    private void NavigateToStockMovements() => Navigation.NavigateTo(_services.GetRequiredService<StockMovementsViewModel>());
+    private void NavigateToStockMovements() => Show<StockMovementsViewModel>();
 
     [RelayCommand]
-    private void NavigateToCatalog() => Navigation.NavigateTo(_services.GetRequiredService<CatalogViewModel>());
+    private void NavigateToCatalog() => Show<CatalogViewModel>();
 
     [RelayCommand]
-    private void NavigateToLowStock() => Navigation.NavigateTo(_services.GetRequiredService<LowStockViewModel>());
+    private void NavigateToLowStock() => Show<LowStockViewModel>();
 
     [RelayCommand]
-    private void NavigateToAnalytics() => Navigation.NavigateTo(_services.GetRequiredService<SalesAnalyticsViewModel>());
+    private void NavigateToAnalytics() => Show<SalesAnalyticsViewModel>();
 
     [RelayCommand]
-    private void NavigateToUsers() => Navigation.NavigateTo(_services.GetRequiredService<UsersViewModel>());
+    private void NavigateToUsers() => Show<UsersViewModel>();
 
     [RelayCommand]
-    private void NavigateToSettings() => Navigation.NavigateTo(_services.GetRequiredService<SettingsViewModel>());
+    private void NavigateToSettings() => Show<SettingsViewModel>();
 
-    // ---------------------------------------------------------------- Permissions
+    private void Show<TViewModel>() where TViewModel : ObservableObject =>
+        Navigation.NavigateTo(_services.GetRequiredService<TViewModel>());
+
+    // ------------------------------------------------------------------ Permissions
     public bool CanViewReports => _session.Can(AppPermissions.ReportsView) || _session.Can(AppPermissions.DashboardView);
 
     public bool CanViewUsers => _session.Can(AppPermissions.UsersView);
@@ -99,10 +139,6 @@ public sealed partial class MainViewModel : ObservableObject
     public bool CanViewCatalog => _session.Can(AppPermissions.CatalogView);
 
     public bool CanViewSuppliers => _session.Can(AppPermissions.SuppliersView);
-
-    [RelayCommand]
-    private void ShowComingSoon(string? moduleName) =>
-        _dialogs.ShowInformation($"شاشة ({moduleName}) ستكون متاحة في المرحلة القادمة من المشروع.", "قريباً");
 
     [RelayCommand]
     private void SignOut()

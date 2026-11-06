@@ -1,9 +1,9 @@
 <Window x:Class="Supermarket.POS.Views.LoginWindow"
+        Style="{StaticResource AppWindowStyle}"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="نقطة البيع - تسجيل الدخول"
         Height="640" Width="820"
-        FlowDirection="RightToLeft"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="{StaticResource PosBackgroundBrush}">
@@ -11,34 +11,40 @@
     <Grid>
         <Border Width="520" Background="{StaticResource PosPanelBrush}" CornerRadius="14" Padding="36">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Opacity="0.55" Color="Black" />
+                <DropShadowEffect BlurRadius="24" ShadowDepth="0" Opacity="0.35" Color="Black" />
             </Border.Effect>
 
             <StackPanel>
                 <TextBlock Text="نقطة البيع" FontSize="32" FontWeight="Bold"
-                           Foreground="{StaticResource PosAccentBrush}" HorizontalAlignment="Right" />
-                <TextBlock Text="سوبر ماركت الأمانة - تسجيل دخول الكاشير"
+                           Foreground="{StaticResource PosAccentBrush}" />
+                <TextBlock Text="{Binding StoreName}"
                            Foreground="{StaticResource PosMutedTextBrush}"
-                           Margin="0,6,0,28" HorizontalAlignment="Right" />
+                           Margin="0,6,0,28" />
 
                 <TextBlock Text="اسم المستخدم" Foreground="{StaticResource PosMutedTextBrush}" Margin="0,0,0,6" />
-                <TextBox Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,18"
-                         FlowDirection="LeftToRight" TextAlignment="Left" FontSize="16" />
+                <TextBox Style="{StaticResource PosLatinInputStyle}"
+                         Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="0,0,0,18" FontSize="16" />
 
                 <StackPanel Visibility="{Binding UsePassword, Converter={StaticResource BoolToVisibilityInverse}}">
-                    <TextBlock Text="الرقم السري (4 أرقام)" Foreground="{StaticResource PosMutedTextBrush}" Margin="0,0,0,6" />
-                    <PasswordBox x:Name="PinBox" MaxLength="4" KeyDown="OnPinKeyDown" Margin="0,0,0,8"
-                             FlowDirection="LeftToRight" FontSize="20" />
+                    <TextBlock Text="الرقم السري (4 أرقام)" Foreground="{StaticResource PosMutedTextBrush}"
+                               Margin="0,0,0,6" />
+                    <PasswordBox x:Name="PinBox" MaxLength="4" Margin="0,0,0,8"
+                                 Style="{StaticResource PosLatinPasswordStyle}" FontSize="20"
+                                 KeyDown="OnPinKeyDown" />
                 </StackPanel>
 
                 <StackPanel Visibility="{Binding UsePassword, Converter={StaticResource BoolToVisibility}}">
-                    <TextBlock Text="كلمة المرور" Foreground="{StaticResource PosMutedTextBrush}" Margin="0,0,0,6" />
-                    <PasswordBox x:Name="PasswordBox" KeyDown="OnPasswordKeyDown" Margin="0,0,0,8"
-                             FlowDirection="LeftToRight" FontSize="16" />
+                    <TextBlock Text="كلمة المرور" Foreground="{StaticResource PosMutedTextBrush}"
+                               Margin="0,0,0,6" />
+                    <PasswordBox x:Name="PasswordBox" Margin="0,0,0,8"
+                                 Style="{StaticResource PosLatinPasswordStyle}" FontSize="16"
+                                 KeyDown="OnPasswordKeyDown" />
                 </StackPanel>
 
-                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource PosDangerBrush}" TextWrapping="Wrap"
-                           Margin="0,8,0,8" />
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource PosDangerBrush}"
+                           TextWrapping="Wrap" Margin="0,8,0,8"
+                           Visibility="{Binding ErrorMessage, Converter={StaticResource EmptyStringToVisibility}}" />
 
                 <Button Content="دخول" Height="60" FontSize="20" Click="OnSignInClick" IsDefault="True" />
 

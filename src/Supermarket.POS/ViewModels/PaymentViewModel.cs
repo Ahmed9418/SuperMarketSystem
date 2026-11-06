@@ -92,6 +92,9 @@ public sealed partial class PaymentViewModel : ObservableObject
         ? Totals.TotalAmount
         : Math.Max(0m, Math.Round(Totals.TotalAmount - PaidAmount, 2));
 
+    /// <summary>Caption of the active payment method, echoed next to the totals so the cashier sees it.</summary>
+    public string SelectedMethodName => SelectedMethod?.Caption ?? "نقدي";
+
     public bool IsCredit => SelectedMethod?.Method == PaymentMethod.Credit;
 
     public bool IsCash => SelectedMethod?.Method == PaymentMethod.Cash;
@@ -217,6 +220,7 @@ public sealed partial class PaymentViewModel : ObservableObject
 
     partial void OnSelectedMethodChanged(PaymentMethodOption? value)
     {
+        OnPropertyChanged(nameof(SelectedMethodName));
         OnPropertyChanged(nameof(IsCredit));
         OnPropertyChanged(nameof(IsCash));
         NotifyTotals();

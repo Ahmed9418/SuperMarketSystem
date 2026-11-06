@@ -37,6 +37,9 @@ public sealed partial class DashboardViewModel : ObservableObject
     [ObservableProperty]
     private string lastUpdatedText = string.Empty;
 
+    /// <summary>Drives the amber alert banner above the grid.</summary>
+    public bool HasLowStock => Summary.LowStockProducts > 0 || Summary.OutOfStockProducts > 0;
+
     /// <summary>Executed on construction and by the refresh command.</summary>
     [RelayCommand]
     private async Task LoadAsync()
@@ -51,6 +54,7 @@ public sealed partial class DashboardViewModel : ObservableObject
         {
             Summary = await _dashboardService.GetSummaryAsync();
             LowStockProducts = await _productService.GetLowStockAsync(8);
+            OnPropertyChanged(nameof(HasLowStock));
             LastUpdatedText = $"آخر تحديث: {DateTime.Now:HH:mm}";
         }
         catch (Exception ex)

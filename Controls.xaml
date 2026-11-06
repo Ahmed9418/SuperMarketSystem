@@ -1,7 +1,0 @@
-<ContentPresenter
-    FlowDirection="RightToLeft"
-    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-    Content="{TemplateBinding Content}"
-    ContentTemplate="{TemplateBinding ContentTemplate}"
-    ContentStringFormat="{TemplateBinding ContentStringFormat}" />

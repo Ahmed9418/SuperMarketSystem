@@ -3,7 +3,7 @@ using Supermarket.Admin.ViewModels;
 
 namespace Supermarket.Admin.Views;
 
-/// <summary>Modal permission matrix of one account.</summary>
+/// <summary>Per-user permission editor: role defaults plus explicit grant / revoke overrides.</summary>
 public partial class PermissionsWindow : Window
 {
     private readonly PermissionsViewModel _viewModel;
@@ -11,11 +11,12 @@ public partial class PermissionsWindow : Window
     public PermissionsWindow(PermissionsViewModel viewModel)
     {
         InitializeComponent();
+
         _viewModel = viewModel;
         DataContext = viewModel;
 
-        viewModel.Saved += OnSaved;
-        viewModel.Cancelled += (_, _) => DialogResult = false;
+        _viewModel.Saved += OnSaved;
+        _viewModel.Cancelled += OnCancelled;
     }
 
     private void OnSaved(object? sender, EventArgs e)
@@ -24,11 +25,18 @@ public partial class PermissionsWindow : Window
         Close();
     }
 
-    private void OnCancelClick(object sender, RoutedEventArgs e) => DialogResult = false;
+    private void OnCancelled(object? sender, EventArgs e) => Close();
+
+    private void OnCancelClick(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+        Close();
+    }
 
     protected override void OnClosed(EventArgs e)
     {
         _viewModel.Saved -= OnSaved;
+        _viewModel.Cancelled -= OnCancelled;
         base.OnClosed(e);
     }
 }

@@ -14,11 +14,6 @@ public partial class MainWindow : Window
         _viewModel = viewModel;
         DataContext = viewModel;
 
-        Loaded += (_, _) => _viewModel.Initialize();
-    }
-
-    private void Button_Click(object sender, RoutedEventArgs e)
-    {
-
+        Loaded += async (_, _) => await _viewModel.InitializeAsync();
     }
 }

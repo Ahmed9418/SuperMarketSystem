@@ -1,13 +1,12 @@
 <Window x:Class="Supermarket.Admin.Views.PermissionsWindow"
+        Style="{StaticResource AppWindowStyle}"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="{Binding Title}"
-        Height="640" Width="760"
+        Height="660" Width="780"
         WindowStartupLocation="CenterOwner"
-        FlowDirection="RightToLeft"
         ResizeMode="CanResize"
-        Background="{StaticResource CanvasBrush}"
-        FontFamily="{StaticResource AppFontFamily}">
+        Background="{StaticResource CanvasBrush}">
 
     <Grid Margin="18">
         <Grid.RowDefinitions>
@@ -17,15 +16,18 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!-- ============================== Header ============================== -->
         <StackPanel Grid.Row="0" Margin="0,0,0,12">
             <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitleTextStyle}" FontSize="20" />
-            <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,0">
+            <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                       TextWrapping="Wrap" Margin="0,6,0,0">
                 <Run Text="الدور:" />
                 <Run Text="{Binding RoleName, Mode=OneWay}" />
-                <Run Text=" — الصلاحيات المكتوبة (الافتراضي) تأتي من الدور، وأي تعديل يُخزَّن كاستثناء لهذا المستخدم." />
+                <Run Text="— القيمة الافتراضية تأتي من الدور، وأي تعديل يُخزَّن كاستثناء لهذا المستخدم." />
             </TextBlock>
         </StackPanel>
 
+        <!-- ============================== Toolbar ============================= -->
         <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="10" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -35,21 +37,26 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <TextBlock Text="المجموعة:" VerticalAlignment="Center" Margin="0,0,8,0" />
-                    <ComboBox Width="160" ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}" />
+                    <TextBlock Text="المجموعة" Margin="0,0,8,0" VerticalAlignment="Center" />
+                    <ComboBox Width="170" ItemsSource="{Binding Groups}"
+                              SelectedItem="{Binding SelectedGroup}" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <Button Content="✔ منح الكل" Width="120" Height="34" Style="{StaticResource SecondaryButtonStyle}"
-                            Command="{Binding GrantAllCommand}" Margin="0,0,8,0" />
-                    <Button Content="✖ سحب الكل" Width="120" Height="34" Style="{StaticResource GhostButtonStyle}"
-                            Command="{Binding RevokeAllCommand}" Margin="0,0,8,0" />
-                    <Button Content="↺ استعادة الافتراضي" Width="160" Height="34" Style="{StaticResource GhostButtonStyle}"
+                    <Button Content="✔ منح الكل" Width="120" Height="34" Margin="0,0,8,0"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding GrantAllCommand}" />
+                    <Button Content="✖ سحب الكل" Width="120" Height="34" Margin="0,0,8,0"
+                            Style="{StaticResource GhostButtonStyle}"
+                            Command="{Binding RevokeAllCommand}" />
+                    <Button Content="↺ استعادة الافتراضي" Width="170" Height="34"
+                            Style="{StaticResource GhostButtonStyle}"
                             Command="{Binding RestoreDefaultsCommand}" />
                 </StackPanel>
             </Grid>
         </Border>
 
+        <!-- ============================== Matrix ============================== -->
         <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="6">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding FilteredRows}">
@@ -69,14 +76,15 @@
                                     <TextBlock Grid.Column="1" Text="{Binding ArabicName}" Margin="10,0,0,0"
                                                VerticalAlignment="Center" FontSize="14" />
 
-                                    <TextBlock Grid.Column="2" Text="{Binding Key}" FontSize="11"
-                                               Foreground="{StaticResource TextSecondaryBrush}"
-                                               FlowDirection="LeftToRight" Margin="0,0,14,0"
-                                               VerticalAlignment="Center" />
+                                    <!-- Permission key is a Latin identifier: isolated so it reads correctly in RTL. -->
+                                    <TextBlock Grid.Column="2" Text="{Binding Key}"
+                                               FlowDirection="LeftToRight" TextAlignment="Left"
+                                               FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                                               Margin="0,0,14,0" VerticalAlignment="Center" />
 
-                                    <Border Grid.Column="3" CornerRadius="4" Padding="8,2" Background="{StaticResource PrimaryLightBrush}">
+                                    <Border Grid.Column="3" CornerRadius="4" Padding="8,2">
                                         <Border.Style>
-                                            <Style TargetType="Border">
+                                            <Style TargetType="{x:Type Border}">
                                                 <Setter Property="Background" Value="{StaticResource PrimaryLightBrush}" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsOverride}" Value="True">
@@ -96,19 +104,26 @@
             </ScrollViewer>
         </Border>
 
+        <!-- ============================== Footer ============================== -->
         <Grid Grid.Row="3" Margin="0,12,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" FontSize="12" VerticalAlignment="Center"
-                       Foreground="{StaticResource TextSecondaryBrush}" />
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12" VerticalAlignment="Center"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+                <ProgressBar Width="120" Height="5" Margin="10,0,0,0" IsIndeterminate="True"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button Content="💾 حفظ الصلاحيات" Width="150" Height="40" Style="{StaticResource BaseButtonStyle}"
-                        Command="{Binding SaveCommand}" Margin="0,0,8,0" />
-                <Button Content="إلغاء" Width="110" Height="40" Style="{StaticResource SecondaryButtonStyle}"
+                <Button Content="💾 حفظ الصلاحيات" Width="160" Height="40" Margin="0,0,8,0"
+                        IsDefault="True"
+                        Command="{Binding SaveCommand}" />
+                <Button Content="إلغاء" Width="110" Height="40"
+                        Style="{StaticResource SecondaryButtonStyle}"
                         IsCancel="True" Click="OnCancelClick" />
             </StackPanel>
         </Grid>

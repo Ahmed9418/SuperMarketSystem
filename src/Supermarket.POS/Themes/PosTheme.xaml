@@ -2,12 +2,18 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        POS theme = light palette shared with the admin application ("Modern Blue": primary #1D4ED8, sidebar #0F172A),
-        while every interactive element stays larger than in the back office because the terminal is
-        used on a touch screen (44 px minimum, 60+ px for the F-key shortcuts). Flow is RightToLeft.
+        ============================================================================
+        POS theme: the light "Modern Blue" palette of the admin application, scaled
+        up for a touch screen (44 px minimum, 60+ px for the F-key chips).
+
+        RTL RULE: FlowDirection = RightToLeft is declared ONCE, on the Window style.
+        Controls inherit it. Use FlowDirection="LeftToRight" only for Latin content
+        (barcode, user name) and for the monospace receipt preview.
+        ============================================================================
     -->
 
     <FontFamily x:Key="PosFontFamily">Segoe UI, Tahoma, Arial</FontFamily>
+    <FontFamily x:Key="PosMonoFontFamily">Consolas, Tahoma</FontFamily>
 
     <!-- Surfaces -->
     <SolidColorBrush x:Key="PosBackgroundBrush" Color="#F4F6FB" />
@@ -20,6 +26,7 @@
     <SolidColorBrush x:Key="PosAccentBrush" Color="#1D4ED8" />
     <SolidColorBrush x:Key="PosAccentDarkBrush" Color="#1E3A8A" />
     <SolidColorBrush x:Key="PosAccentLightBrush" Color="#EFF6FF" />
+    <SolidColorBrush x:Key="PosAccentMidBrush" Color="#3B82F6" />
     <SolidColorBrush x:Key="PosDangerBrush" Color="#DC2626" />
     <SolidColorBrush x:Key="PosWarningBrush" Color="#D97706" />
     <SolidColorBrush x:Key="PosSuccessBrush" Color="#059669" />
@@ -29,17 +36,14 @@
     <SolidColorBrush x:Key="PosMutedTextBrush" Color="#5B6675" />
     <SolidColorBrush x:Key="PosBorderBrush" Color="#DDE3EE" />
 
-    <!-- Text on the dark sidebar / header -->
+    <!-- Text on the dark header / sidebar -->
     <SolidColorBrush x:Key="PosOnDarkTextBrush" Color="#E8EEF9" />
     <SolidColorBrush x:Key="PosOnDarkMutedBrush" Color="#B6C4DA" />
-
-    <!-- Dark-surface interaction states (same values as the admin SidebarHover/Pressed/Divider) -->
     <SolidColorBrush x:Key="PosSidebarHoverBrush" Color="#1E293B" />
     <SolidColorBrush x:Key="PosSidebarPressedBrush" Color="#172554" />
     <SolidColorBrush x:Key="PosDividerBrush" Color="#24324A" />
-    <SolidColorBrush x:Key="PosAccentMidBrush" Color="#3B82F6" />
 
-    <!-- Soft tints: use these instead of raw hex on badges, warning strips and row highlights -->
+    <!-- Soft tints for badges and row highlights -->
     <SolidColorBrush x:Key="PosTableStripeBrush" Color="#F8FAFC" />
     <SolidColorBrush x:Key="PosDangerLightBrush" Color="#FEE2E2" />
     <SolidColorBrush x:Key="PosWarningLightBrush" Color="#FEF3C7" />
@@ -47,25 +51,33 @@
     <SolidColorBrush x:Key="PosSuccessLightBrush" Color="#DCFCE7" />
     <SolidColorBrush x:Key="PosSuccessDarkBrush" Color="#065F46" />
 
-    <Style TargetType="{x:Type Window}">
+    <!-- ============================================================== Window -->
+    <!--
+        Keyed so a derived window can opt in:  Style="{StaticResource AppWindowStyle}".
+        An implicit style is matched by EXACT type, and every window here is a derived class,
+        so ArabicLayout.PinWindowStyle() also binds this style to each window type.
+    -->
+    <Style x:Key="AppWindowStyle" TargetType="{x:Type Window}">
         <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource PosFontFamily}" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="Background" Value="{StaticResource PosBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource PosTextBrush}" />
+        <Setter Property="UseLayoutRounding" Value="True" />
     </Style>
 
-    <!-- No Foreground setter: an implicit TextBlock style also hits the TextBlock a ContentPresenter
-         creates for string content, which would override the inherited colour (dark text on the navy
-         table headers and inside buttons). The Window style owns the default colour instead. -->
+    <Style TargetType="{x:Type Window}" BasedOn="{StaticResource AppWindowStyle}" />
+
+    <!-- No Foreground setter here: an implicit TextBlock style also hits the TextBlock a
+         ContentPresenter creates for string content, which would override the inherited colour
+         (dark text on navy headers and inside buttons). The Window style owns the default colour. -->
     <Style TargetType="{x:Type TextBlock}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource PosFontFamily}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
+    <!-- =============================================================== Inputs -->
     <Style TargetType="{x:Type TextBox}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource PosFontFamily}" />
         <Setter Property="Height" Value="46" />
         <Setter Property="FontSize" Value="18" />
@@ -77,10 +89,21 @@
         <Setter Property="SelectionBrush" Value="{StaticResource PosAccentBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource PosBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource PosAccentBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Latin / numeric input: scanner codes and typed amounts read left to right. -->
+    <Style x:Key="PosLatinInputStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="FlowDirection" Value="LeftToRight" />
+        <Setter Property="TextAlignment" Value="Left" />
+        <Setter Property="FontFamily" Value="{StaticResource PosMonoFontFamily}" />
     </Style>
 
     <Style TargetType="{x:Type PasswordBox}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="Height" Value="46" />
         <Setter Property="FontSize" Value="18" />
         <Setter Property="Padding" Value="10,6" />
@@ -91,8 +114,14 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
 
+    <!-- Latin password / PIN: typed left to right so the dots and digits do not jump. -->
+    <Style x:Key="PosLatinPasswordStyle" TargetType="{x:Type PasswordBox}" BasedOn="{StaticResource {x:Type PasswordBox}}">
+        <Setter Property="FlowDirection" Value="LeftToRight" />
+        <Setter Property="TextAlignment" Value="Left" />
+        <Setter Property="FontFamily" Value="{StaticResource PosMonoFontFamily}" />
+    </Style>
+
     <Style TargetType="{x:Type ComboBox}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource PosFontFamily}" />
         <Setter Property="Height" Value="44" />
         <Setter Property="FontSize" Value="16" />
@@ -105,13 +134,18 @@
     </Style>
 
     <Style TargetType="{x:Type ComboBoxItem}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource PosFontFamily}" />
         <Setter Property="FontSize" Value="16" />
         <Setter Property="Padding" Value="8,6" />
     </Style>
 
-    <!-- Selected / hovered cart rows: accent fill instead of the OS default blue -->
+    <Style TargetType="{x:Type CheckBox}">
+        <Setter Property="FontFamily" Value="{StaticResource PosFontFamily}" />
+        <Setter Property="Foreground" Value="{StaticResource PosTextBrush}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <!-- ================================================================ Grids -->
     <Style TargetType="{x:Type DataGridRow}">
         <Setter Property="Foreground" Value="{StaticResource PosTextBrush}" />
         <Setter Property="Background" Value="{StaticResource PosSurfaceBrush}" />
@@ -127,7 +161,6 @@
     </Style>
 
     <Style TargetType="{x:Type DataGrid}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource PosFontFamily}" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="Background" Value="{StaticResource PosSurfaceBrush}" />
@@ -138,6 +171,10 @@
         <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource PosBorderBrush}" />
         <Setter Property="VerticalGridLinesBrush" Value="{StaticResource PosBorderBrush}" />
         <Setter Property="ColumnHeaderHeight" Value="42" />
+        <Setter Property="AutoGenerateColumns" Value="False" />
+        <Setter Property="CanUserAddRows" Value="False" />
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="SelectionMode" Value="Single" />
     </Style>
 
     <Style TargetType="{x:Type DataGridColumnHeader}">
@@ -171,9 +208,8 @@
         </Setter>
     </Style>
 
-    <!-- Large touch friendly button -->
+    <!-- ============================================================== Buttons -->
     <Style TargetType="{x:Type Button}">
-        <Setter Property="FlowDirection" Value="RightToLeft" />
         <Setter Property="FontFamily" Value="{StaticResource PosFontFamily}" />
         <Setter Property="FontSize" Value="17" />
         <Setter Property="FontWeight" Value="SemiBold" />
@@ -186,7 +222,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="8">
+                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                                           Margin="{TemplateBinding Padding}" />
                     </Border>
@@ -206,8 +246,16 @@
         </Setter>
     </Style>
 
-    <!-- F-key shortcut / function button: light chip with an accent border -->
-    <Style x:Key="FunctionButtonStyle" TargetType="{x:Type Button}">
+    <!-- Light chip used for the "secondary" actions that must not compete with the primary one. -->
+    <Style x:Key="PosLightButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="{StaticResource PosPanelBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PosTextBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PosBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <!-- F-key shortcut chip -->
+    <Style x:Key="FunctionButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Height" Value="64" />
         <Setter Property="Margin" Value="4" />
         <Setter Property="Background" Value="{StaticResource PosAccentLightBrush}" />
@@ -217,12 +265,12 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
 
-    <Style x:Key="DangerButtonStyle" TargetType="{x:Type Button}">
+    <Style x:Key="DangerButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="{StaticResource PosDangerBrush}" />
         <Setter Property="Foreground" Value="White" />
     </Style>
 
-    <!-- Totals panel used on the right hand side of the checkout screen -->
+    <!-- =========================================================== Typography -->
     <Style x:Key="TotalLabelStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="FontSize" Value="16" />
         <Setter Property="Foreground" Value="{StaticResource PosMutedTextBrush}" />

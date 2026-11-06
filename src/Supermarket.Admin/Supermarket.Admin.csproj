@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <RootNamespace>Supermarket.Admin</RootNamespace>
     <AssemblyName>Supermarket.Admin</AssemblyName>
@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Supermarket.Core\Supermarket.Core.csproj" />
+    <ProjectReference Include="..\Supermarket.Wpf\Supermarket.Wpf.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +25,10 @@
 
   <ItemGroup>
     <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <!-- Per-machine override (git-ignored): SQL Server instance, printer name, terminal id. -->
+    <None Update="appsettings.Local.json" Condition="Exists('appsettings.Local.json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

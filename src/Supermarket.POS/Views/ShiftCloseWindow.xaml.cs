@@ -15,7 +15,7 @@ public partial class ShiftCloseWindow : Window
         InitializeComponent();
         _viewModel = viewModel;
         DataContext = viewModel;
-        viewModel.CloseRequested += (_, _) => Close();
+        viewModel.CloseRequested += OnCloseRequested;
     }
 
     /// <summary>Loads the shift and its live figures.</summary>
@@ -24,8 +24,12 @@ public partial class ShiftCloseWindow : Window
     /// <summary>True when the shift was actually closed in this dialog.</summary>
     public bool ShiftWasClosed => _viewModel.IsClosed;
 
+    private void OnCloseRequested(object? sender, EventArgs e) => Close();
+
     protected override void OnClosed(EventArgs e)
     {
+        // The window closes before the view model is collected: detach to avoid a dangling subscription.
+        _viewModel.CloseRequested -= OnCloseRequested;
         base.OnClosed(e);
     }
 }

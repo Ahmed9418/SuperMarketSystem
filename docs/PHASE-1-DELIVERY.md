@@ -16,7 +16,7 @@ Everything below was compiled with the .NET 8 SDK (`dotnet build SupermarketSyst
 | DTOs | `DTOs/CatalogDtos.cs`, `DTOs/SalesDtos.cs`, `DTOs/ShiftDtos.cs` |
 | Services | `ProductService`, `StockService`, `CatalogService`, `SupplierService`, `AuthService`, `DashboardService`, `NumberSequenceService`, `StoreSettingsService` |
 | Composition | `DependencyInjection/CoreServiceCollectionExtensions.cs` (`AddSupermarketCore`) |
-| Localization | `Localization/AppStrings.cs` (Arabic UI vocabulary kept out of the code identifiers) |
+| Localization | `Localization/AppCulture.cs` (ar-EG culture with Latin digits) + `Supermarket.Wpf/ArabicLayout.cs` |
 
 ### Supermarket.Admin (WPF, `net8.0-windows`)
 

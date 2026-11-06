@@ -20,7 +20,13 @@ public partial class LoginWindow : Window
         _viewModel = viewModel;
         DataContext = viewModel;
         viewModel.SignedIn += OnSignedIn;
-        Loaded += (_, _) => PinBox.Focus();
+        Loaded += OnLoaded;
+    }
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.LoadStoreNameAsync();
+        PinBox.Focus();
     }
 
     private async void OnSignInClick(object sender, RoutedEventArgs e) => await SubmitAsync();

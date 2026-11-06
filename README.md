@@ -39,11 +39,15 @@ SupermarketSystem/
 │   │   │                              # Sales (checkout transaction), Shift (X/Z + closing),
 │   │   │                              # ReceiptFormatter, HeldCart, Report, UserAdmin, Auth,
 │   │   │                              # Dashboard, NumberSequence, StoreSettings
-│   │   ├── Localization/AppStrings.cs # shared Arabic UI vocabulary
+│   │   ├── Localization/AppCulture.cs # ar-EG culture, Latin digits, bidi isolation
 │   │   └── DependencyInjection/       # AddSupermarketCore(...) composition root
+│   ├── Supermarket.Wpf/               # ── shared WPF library (net8.0-windows)
+│   │   ├── ArabicLayout.cs            # culture + RTL metadata applied once at start-up
+│   │   ├── ArabicMessageBox.cs        # MessageBox with RtlReading | RightAlign
+│   │   ├── Converters/                # EGP currency, enum → Arabic, bidi isolation, visibility …
+│   │   └── Themes/Converters.xaml     # the single converter dictionary merged by both apps
 │   ├── Supermarket.Admin/             # ── WPF admin shell (net8.0-windows)
 │   │   ├── Themes/                    # Colors.xaml + Controls.xaml (RTL theme)
-│   │   ├── Converters/                # EGP currency, stock status, enum → Arabic …
 │   │   ├── Services/                  # AuthSession, DialogService, NavigationService
 │   │   ├── ViewModels/                # Login, Main, Dashboard, Products, ProductEdit,
 │   │   │                              # StockMovements, StockAdjustment, Catalog,
@@ -178,3 +182,7 @@ demoted or suspended, and nobody can remove their own administration rights.
 * All Arabic columns are mapped with `IsUnicode(true)` (i.e. `nvarchar`).
 * Money: `decimal(18,2)` for amounts, `decimal(18,4)` for prices/costs, `decimal(18,3)` for quantities.
 * Soft delete (`IsDeleted`) + query filters; the ledger (`StockMovements`) is the single source of truth for stock.
+
+## التحقق من العرض العربي
+
+راجع [`docs/RTL-VERIFICATION.md`](docs/RTL-VERIFICATION.md) لتقرير RTL وخطوات التحقق على ويندوز.

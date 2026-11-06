@@ -14,19 +14,31 @@ public sealed partial class LoginViewModel : ObservableObject
 {
     private readonly IAuthService _authService;
     private readonly IUserAdminService _users;
+    private readonly IStoreSettingsService _settings;
     private readonly AuthSession _session;
     private readonly IDialogService _dialogs;
 
-    public LoginViewModel(IAuthService authService, IUserAdminService users, AuthSession session, IDialogService dialogs)
+    public LoginViewModel(
+        IAuthService authService,
+        IUserAdminService users,
+        IStoreSettingsService settings,
+        AuthSession session,
+        IDialogService dialogs)
     {
         _authService = authService;
         _users = users;
+        _settings = settings;
         _session = session;
         _dialogs = dialogs;
+
+        _ = LoadStoreNameAsync();
     }
 
     [ObservableProperty]
     private string userName = string.Empty;
+
+    [ObservableProperty]
+    private string storeName = "سوبر ماركت الأمانة";
 
     [ObservableProperty]
     private string errorMessage = string.Empty;
@@ -52,7 +64,7 @@ public sealed partial class LoginViewModel : ObservableObject
 
         try
         {
-            var result = await _authService.SignInAsync(UserName, password ?? string.Empty);
+            var result = await _authService.SignInAsync(UserName.Trim(), password ?? string.Empty);
             if (!result.Succeeded || result.User is null)
             {
                 ErrorMessage = result.ErrorMessage ?? "تعذر تسجيل الدخول";
@@ -61,19 +73,36 @@ public sealed partial class LoginViewModel : ObservableObject
 
             _session.SignIn(result.User);
 
-            // Pull the effective permission set (role defaults + the user's overrides) so the shell can
-            // hide the modules this operator is not allowed to open.
+            // Effective permission set (role defaults + user overrides) so the shell can hide the
+            // modules this operator may not open.
             await _session.LoadPermissionsAsync(_users);
 
             SignedIn?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
-            _dialogs.ShowError(SqlServerDiagnostics.Describe(ex), "خطأ في تسجيل الدخول");
+            ErrorMessage = SqlServerDiagnostics.Describe(ex);
         }
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    private async Task LoadStoreNameAsync()
+    {
+        try
+        {
+            var settings = await _settings.GetAsync();
+            if (!string.IsNullOrWhiteSpace(settings.StoreName))
+            {
+                StoreName = settings.StoreName;
+            }
+        }
+        catch
+        {
+            // The login screen must still appear when the database is unreachable; the error is
+            // reported by the sign-in attempt itself.
         }
     }
 }

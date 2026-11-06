@@ -1,8 +1,13 @@
 <UserControl x:Class="Supermarket.Admin.Views.SalesAnalyticsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
-             FlowDirection="RightToLeft">
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF">
+
+    <UserControl.Resources>
+        <Style x:Key="FilterLabelStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource FieldLabelTextStyle}">
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+    </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -11,59 +16,46 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Filter bar -->
+        <!-- ============================= Filter bar ============================= -->
         <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Padding="14,10" Margin="0,0,0,12">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                    <TextBlock Text="الفترة" Style="{StaticResource FieldLabelTextStyle}" />
-                    <ComboBox Width="140" ItemsSource="{Binding PeriodPresets}"
+            <WrapPanel>
+                <StackPanel Width="140" Margin="0,0,12,0">
+                    <TextBlock Text="الفترة" Style="{StaticResource FilterLabelStyle}" />
+                    <ComboBox ItemsSource="{Binding PeriodPresets}"
                               SelectedItem="{Binding SelectedPeriod}"
                               SelectionChanged="OnPeriodChanged" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Margin="0,0,12,0">
-                    <TextBlock Text="من تاريخ" Style="{StaticResource FieldLabelTextStyle}" />
-                    <DatePicker Width="140" SelectedDate="{Binding FromDate}" />
+                <StackPanel Width="140" Margin="0,0,12,0">
+                    <TextBlock Text="من تاريخ" Style="{StaticResource FilterLabelStyle}" />
+                    <DatePicker SelectedDate="{Binding FromDate}" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Margin="0,0,12,0">
-                    <TextBlock Text="إلى تاريخ" Style="{StaticResource FieldLabelTextStyle}" />
-                    <DatePicker Width="140" SelectedDate="{Binding ToDate}" />
+                <StackPanel Width="140" Margin="0,0,12,0">
+                    <TextBlock Text="إلى تاريخ" Style="{StaticResource FilterLabelStyle}" />
+                    <DatePicker SelectedDate="{Binding ToDate}" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="3" Margin="0,0,12,0">
-                    <TextBlock Text="الكاشير" Style="{StaticResource FieldLabelTextStyle}" />
-                    <ComboBox Width="170" ItemsSource="{Binding Cashiers}" DisplayMemberPath="Name"
+                <StackPanel Width="170" Margin="0,0,12,0">
+                    <TextBlock Text="الكاشير" Style="{StaticResource FilterLabelStyle}" />
+                    <ComboBox ItemsSource="{Binding Cashiers}" DisplayMemberPath="Name"
                               SelectedItem="{Binding SelectedCashier}" />
                 </StackPanel>
 
-                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom">
-                    <Button Content="🔍 عرض" Style="{StaticResource BaseButtonStyle}" Width="100"
-                            Command="{Binding ApplyFilterCommand}" Margin="0,0,8,0" />
-                    <Button Content="🔄 تحديث" Style="{StaticResource SecondaryButtonStyle}" Width="110"
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Content="🔍 عرض" Width="100" Margin="0,0,8,0"
+                            Command="{Binding ApplyFilterCommand}" />
+                    <Button Content="🔄 تحديث" Width="110" Margin="0,0,8,0"
+                            Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding LoadCommand}" />
+                    <Button Content="⬇ تصدير الفواتير (CSV)" Width="190"
+                            Style="{StaticResource GhostButtonStyle}"
+                            Command="{Binding ExportCommand}" />
                 </StackPanel>
-
-                <TextBlock Grid.Column="5" VerticalAlignment="Bottom" Margin="16,0,0,12"
-                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"
-                           Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis" />
-
-                <Button Grid.Column="6" Content="⬇ تصدير الفواتير (CSV)" Style="{StaticResource GhostButtonStyle}"
-                        Width="190" VerticalAlignment="Bottom" Command="{Binding ExportCommand}" />
-            </Grid>
+            </WrapPanel>
         </Border>
 
-        <!-- Body -->
+        <!-- ================================ Body ================================ -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
 
@@ -82,7 +74,7 @@
                             </TextBlock>
                             <TextBlock Text="{Binding GrowthText}" FontSize="12" Margin="0,4,0,0">
                                 <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
+                                    <Style TargetType="{x:Type TextBlock}">
                                         <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsGrowthPositive}" Value="False">
@@ -137,7 +129,7 @@
                     </Border>
                 </UniformGrid>
 
-                <!-- Sales trend + payments -->
+                <!-- Sales trend + payment split -->
                 <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*" />
@@ -177,7 +169,8 @@
                                           LegendPosition="Bottom"
                                           TooltipPosition="Top" />
 
-                            <ItemsControl Grid.Row="2" ItemsSource="{Binding Analytics.PaymentBreakdown}" Margin="0,8,0,0">
+                            <ItemsControl Grid.Row="2" ItemsSource="{Binding Analytics.PaymentBreakdown}"
+                                          Margin="0,8,0,0">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Grid Margin="0,2">
@@ -242,62 +235,60 @@
                 </Grid>
 
                 <!-- Tables -->
-                <Grid>
+                <Grid Margin="0,0,0,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,12,12">
+                    <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,12,0">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="220" />
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Text="أداء الكاشيرين" Style="{StaticResource CardTitleTextStyle}" />
-                            <DataGrid Grid.Row="1" ItemsSource="{Binding Analytics.Cashiers}"
-                                      IsReadOnly="True" AutoGenerateColumns="False" Margin="0,8,0,0">
+                            <DataGrid Grid.Row="1" ItemsSource="{Binding Analytics.Cashiers}" Margin="0,8,0,0">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="الكاشير" Binding="{Binding CashierName}" Width="*" />
                                     <DataGridTextColumn Header="الدور" Binding="{Binding RoleName}" Width="110" />
                                     <DataGridTextColumn Header="فواتير" Binding="{Binding InvoiceCount}" Width="80" />
-                                    <DataGridTextColumn Header="المبيعات"
-                                                        Binding="{Binding Sales, StringFormat='{}{0:N2}'}" Width="120" />
-                                    <DataGridTextColumn Header="الربح"
-                                                        Binding="{Binding Profit, StringFormat='{}{0:N2}'}" Width="110" />
+                                    <DataGridTextColumn Header="المبيعات" Width="120"
+                                                        Binding="{Binding Sales, StringFormat='{}{0:N2}'}" />
+                                    <DataGridTextColumn Header="الربح" Width="110"
+                                                        Binding="{Binding Profit, StringFormat='{}{0:N2}'}" />
                                     <DataGridTextColumn Header="ورديّات" Binding="{Binding ShiftCount}" Width="80" />
-                                    <DataGridTextColumn Header="فرق النقدية"
-                                                        Binding="{Binding CashDifference, StringFormat='{}{0:N2}'}" Width="110" />
+                                    <DataGridTextColumn Header="فرق النقدية" Width="110"
+                                                        Binding="{Binding CashDifference, StringFormat='{}{0:N2}'}" />
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>
                     </Border>
 
-                    <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
+                    <Border Grid.Column="1" Style="{StaticResource CardBorderStyle}">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="220" />
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Text="قيمة المخزون حسب القسم" Style="{StaticResource CardTitleTextStyle}" />
-                            <DataGrid Grid.Row="1" ItemsSource="{Binding Analytics.CategoryStock}"
-                                      IsReadOnly="True" AutoGenerateColumns="False" Margin="0,8,0,0">
+                            <DataGrid Grid.Row="1" ItemsSource="{Binding Analytics.CategoryStock}" Margin="0,8,0,0">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="القسم" Binding="{Binding CategoryName}" Width="*" />
                                     <DataGridTextColumn Header="منتجات" Binding="{Binding ProductCount}" Width="90" />
                                     <DataGridTextColumn Header="نواقص" Binding="{Binding LowStockCount}" Width="90" />
-                                    <DataGridTextColumn Header="الكمية"
-                                                        Binding="{Binding Quantity, StringFormat='{}{0:N2}'}" Width="110" />
-                                    <DataGridTextColumn Header="القيمة (ج.م)"
-                                                        Binding="{Binding StockValue, StringFormat='{}{0:N2}'}" Width="130" />
+                                    <DataGridTextColumn Header="الكمية" Width="110"
+                                                        Binding="{Binding Quantity, StringFormat='{}{0:N2}'}" />
+                                    <DataGridTextColumn Header="القيمة (ج.م)" Width="130"
+                                                        Binding="{Binding StockValue, StringFormat='{}{0:N2}'}" />
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>
                     </Border>
                 </Grid>
 
-                <!-- Invoices grid -->
-                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
+                <!-- Invoices -->
+                <Border Style="{StaticResource CardBorderStyle}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -318,21 +309,20 @@
                         <DataGrid x:Name="InvoiceGrid" Grid.Row="1" Margin="0,8,0,0"
                                   ItemsSource="{Binding Invoices}"
                                   SelectedItem="{Binding SelectedInvoiceRow}"
-                                  IsReadOnly="True" AutoGenerateColumns="False"
                                   MouseDoubleClick="OnInvoiceDoubleClick">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="رقم الفاتورة" Binding="{Binding InvoiceNumber}" Width="150" />
-                                <DataGridTextColumn Header="التاريخ والوقت"
-                                                    Binding="{Binding InvoiceDateUtc, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}"
-                                                    Width="140" />
+                                <DataGridTextColumn Header="رقم الفاتورة" Width="150"
+                                                    Binding="{Binding InvoiceNumber, Converter={StaticResource RtlIsolation}}" />
+                                <DataGridTextColumn Header="التاريخ والوقت" Width="140"
+                                                    Binding="{Binding InvoiceDateUtc, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" />
                                 <DataGridTextColumn Header="الكاشير" Binding="{Binding CashierName}" Width="*" />
                                 <DataGridTextColumn Header="العميل" Binding="{Binding CustomerName}" Width="140" />
                                 <DataGridTextColumn Header="طريقة الدفع" Binding="{Binding PaymentMethodName}" Width="110" />
                                 <DataGridTextColumn Header="أصناف" Binding="{Binding ItemCount}" Width="70" />
-                                <DataGridTextColumn Header="الإجمالي"
-                                                    Binding="{Binding TotalAmount, StringFormat='{}{0:N2}'}" Width="110" />
-                                <DataGridTextColumn Header="المدفوع"
-                                                    Binding="{Binding PaidAmount, StringFormat='{}{0:N2}'}" Width="110" />
+                                <DataGridTextColumn Header="الإجمالي" Width="110"
+                                                    Binding="{Binding TotalAmount, StringFormat='{}{0:N2}'}" />
+                                <DataGridTextColumn Header="المدفوع" Width="110"
+                                                    Binding="{Binding PaidAmount, StringFormat='{}{0:N2}'}" />
                                 <DataGridTextColumn Header="الحالة" Binding="{Binding StatusName}" Width="100" />
                             </DataGrid.Columns>
                         </DataGrid>
@@ -341,11 +331,11 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Invoice detail overlay -->
+        <!-- ========================= Invoice detail overlay ======================= -->
         <Border Grid.Row="1" Background="#80000000"
                 Visibility="{Binding SelectedInvoice, Converter={StaticResource NullToVisibility}}">
-            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10" MaxWidth="900" MaxHeight="640"
-                    Margin="40" Padding="18">
+            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="10"
+                    MaxWidth="900" MaxHeight="640" Margin="40" Padding="18">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -372,20 +362,27 @@
                             </TextBlock>
                         </StackPanel>
                         <Button Grid.Column="1" Content="✖" Width="40" Height="32"
-                                Style="{StaticResource GhostButtonStyle}" Command="{Binding CloseInvoiceCommand}" />
+                                Style="{StaticResource GhostButtonStyle}"
+                                Command="{Binding CloseInvoiceCommand}" />
                     </Grid>
 
-                    <DataGrid Grid.Row="1" Margin="0,12,0,0" ItemsSource="{Binding SelectedInvoice.Lines}"
-                              IsReadOnly="True" AutoGenerateColumns="False">
+                    <DataGrid Grid.Row="1" Margin="0,12,0,0" ItemsSource="{Binding SelectedInvoice.Lines}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="الصنف" Binding="{Binding ProductName}" Width="*" />
-                            <DataGridTextColumn Header="البار كود" Binding="{Binding Barcode}" Width="130" />
-                            <DataGridTextColumn Header="الكمية" Binding="{Binding Quantity, StringFormat='{}{0:N2}'}" Width="80" />
-                            <DataGridTextColumn Header="سعر الوحدة" Binding="{Binding UnitPrice, StringFormat='{}{0:N2}'}" Width="110" />
-                            <DataGridTextColumn Header="الخصم" Binding="{Binding DiscountAmount, StringFormat='{}{0:N2}'}" Width="90" />
-                            <DataGridTextColumn Header="الضريبة" Binding="{Binding TaxAmount, StringFormat='{}{0:N2}'}" Width="90" />
-                            <DataGridTextColumn Header="الإجمالي" Binding="{Binding LineTotalWithTax, StringFormat='{}{0:N2}'}" Width="110" />
-                            <DataGridTextColumn Header="الربح" Binding="{Binding Profit, StringFormat='{}{0:N2}'}" Width="100" />
+                            <DataGridTextColumn Header="البار كود" Width="130"
+                                                Binding="{Binding Barcode, Converter={StaticResource RtlIsolation}}" />
+                            <DataGridTextColumn Header="الكمية" Width="80"
+                                                Binding="{Binding Quantity, StringFormat='{}{0:N2}'}" />
+                            <DataGridTextColumn Header="سعر الوحدة" Width="110"
+                                                Binding="{Binding UnitPrice, StringFormat='{}{0:N2}'}" />
+                            <DataGridTextColumn Header="الخصم" Width="90"
+                                                Binding="{Binding DiscountAmount, StringFormat='{}{0:N2}'}" />
+                            <DataGridTextColumn Header="الضريبة" Width="90"
+                                                Binding="{Binding TaxAmount, StringFormat='{}{0:N2}'}" />
+                            <DataGridTextColumn Header="الإجمالي" Width="110"
+                                                Binding="{Binding LineTotalWithTax, StringFormat='{}{0:N2}'}" />
+                            <DataGridTextColumn Header="الربح" Width="100"
+                                                Binding="{Binding Profit, StringFormat='{}{0:N2}'}" />
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -396,7 +393,7 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0" FontSize="18" FontWeight="Bold"
-                                   Foreground="{StaticResource PrimaryBrush}">
+                                   Foreground="{StaticResource PrimaryBrush}" TextWrapping="Wrap">
                             <Run Text="الإجمالي: " />
                             <Run Text="{Binding SelectedInvoice.Header.TotalAmount, Mode=OneWay, StringFormat='{}{0:N2}'}" />
                             <Run Text="ج.م" />
@@ -409,15 +406,16 @@
                         </TextBlock>
 
                         <TextBlock Grid.Column="1" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
-                                   Text="{Binding SelectedInvoice.Notes}" />
+                                   Text="{Binding SelectedInvoice.Notes}" TextWrapping="Wrap" MaxWidth="240" />
                     </Grid>
                 </Grid>
             </Border>
         </Border>
 
-        <!-- Footer -->
-        <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="0,1,0,0" Padding="14,8" Margin="0,12,0,-12">
+        <!-- ============================== Footer =============================== -->
+        <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                Padding="14,8" Margin="0,12,0,-12">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -428,7 +426,7 @@
                     <Run Text="الفترة: " />
                     <Run Text="{Binding PeriodText, Mode=OneWay}" />
                     <Run Text="   |   " />
-                    <Run Text="{Binding StoreName, Mode=OneWay}" />
+                    <Run Text="{Binding StatusMessage, Mode=OneWay}" />
                 </TextBlock>
 
                 <ProgressBar Grid.Column="1" Width="140" Height="6" IsIndeterminate="{Binding IsBusy}"

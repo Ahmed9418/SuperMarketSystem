@@ -6,14 +6,13 @@ using Supermarket.Admin.ViewModels;
 namespace Supermarket.Admin.Views;
 
 /// <summary>
-/// Sign-in window. The view model performs the authentication; the code-behind only wires
-/// the <see cref="System.Windows.Controls.PasswordBox"/> with the view model (a secure
-/// password box does not expose a bindable password property by design).
+/// Sign-in window. The view model performs the authentication; the code-behind only wires the
+/// <see cref="PasswordBox"/> (which never exposes a bindable password property) and the window drag.
 /// </summary>
 public partial class LoginWindow : Window
 {
     private readonly LoginViewModel _viewModel;
-    private bool _opened;
+    private bool _signedInHandled;
     private bool _passwordVisible;
 
     public LoginWindow(LoginViewModel viewModel)
@@ -22,18 +21,23 @@ public partial class LoginWindow : Window
         _viewModel = viewModel;
         DataContext = viewModel;
         viewModel.SignedIn += OnSignedIn;
-        Loaded += OnLoaded;
+        Loaded += (_, _) => UserNameBox.Focus();
     }
-
-    private void OnLoaded(object sender, RoutedEventArgs e) => UserNameBox.Focus();
 
     /// <summary>The password currently typed, whichever box is visible.</summary>
     private string CurrentPassword => _passwordVisible ? PasswordVisibleBox.Text : PasswordBox.Password;
 
-    private async void OnSignInClick(object sender, RoutedEventArgs e)
+    /// <summary>The window has no chrome: the brand panel doubles as the title bar.</summary>
+    private void OnBrandPanelMouseDown(object sender, MouseButtonEventArgs e)
     {
-        await _viewModel.SignInCommand.ExecuteAsync(CurrentPassword);
+        if (e.ButtonState == MouseButtonState.Pressed)
+        {
+            DragMove();
+        }
     }
+
+    private async void OnSignInClick(object sender, RoutedEventArgs e) =>
+        await _viewModel.SignInCommand.ExecuteAsync(CurrentPassword);
 
     private async void OnPasswordKeyDown(object sender, KeyEventArgs e)
     {
@@ -43,10 +47,7 @@ public partial class LoginWindow : Window
         }
     }
 
-    /// <summary>
-    /// Shows / hides the password. A <see cref="PasswordBox"/> cannot reveal its own content, so the two
-    /// controls are swapped and the typed value is carried over in both directions.
-    /// </summary>
+    /// <summary>Shows / hides the password by swapping the two boxes and carrying the typed value over.</summary>
     private void OnTogglePasswordClick(object sender, RoutedEventArgs e)
     {
         _passwordVisible = !_passwordVisible;
@@ -82,15 +83,14 @@ public partial class LoginWindow : Window
 
     private void OnSignedIn(object? sender, EventArgs e)
     {
-        if (_opened)
+        if (_signedInHandled)
         {
             return;
         }
 
-        _opened = true;
+        _signedInHandled = true;
 
-        var mainWindow = App.Services.GetService(typeof(MainWindow)) as MainWindow;
-        if (mainWindow is null)
+        if (App.Services.GetService(typeof(MainWindow)) is not MainWindow mainWindow)
         {
             Application.Current.Shutdown();
             return;
