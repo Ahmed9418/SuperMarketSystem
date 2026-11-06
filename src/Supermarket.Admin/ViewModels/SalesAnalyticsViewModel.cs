@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -12,6 +12,7 @@ using Supermarket.Core.Common;
 using Supermarket.Core.DTOs;
 using Supermarket.Core.Entities;
 using Supermarket.Core.Interfaces;
+using Supermarket.Wpf;
 
 namespace Supermarket.Admin.ViewModels;
 
@@ -129,6 +130,10 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
 
     [ObservableProperty]
     private Axis[] topProductYAxes = Array.Empty<Axis>();
+
+    public bool HasPaymentData => Analytics.PaymentBreakdown.Any(p => p.Amount > 0);
+    public bool HasCategoryData => Analytics.CategorySales.Any(c => c.Sales > 0);
+    public bool HasTopProductData => Analytics.TopProducts.Any(p => p.Revenue > 0);
 
     // ------------------------------------------------------------------ Derived text
     public string StoreName { get; private set; } = "سوبر ماركت";
@@ -351,6 +356,10 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
 
     private void RebuildCharts()
     {
+        OnPropertyChanged(nameof(HasPaymentData));
+        OnPropertyChanged(nameof(HasCategoryData));
+        OnPropertyChanged(nameof(HasTopProductData));
+
         BuildSalesChart();
         BuildPaymentChart();
         BuildCategoryChart();
@@ -365,7 +374,7 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
         {
             new LineSeries<DateTimePoint>
             {
-                Name = $"المبيعات ({DomainConstants.CurrencySymbol})",
+                Name = ArabicTextShaper.ShapeAndReverse($"المبيعات ({DomainConstants.CurrencySymbol})"),
                 Values = points.Select(p => new DateTimePoint(p.Date, (double)p.Sales)).ToArray(),
                 Stroke = new SolidColorPaint(Primary, 3),
                 Fill = new SolidColorPaint(Primary.WithAlpha(38)),
@@ -376,7 +385,7 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
             },
             new LineSeries<DateTimePoint>
             {
-                Name = $"الأرباح ({DomainConstants.CurrencySymbol})",
+                Name = ArabicTextShaper.ShapeAndReverse($"الأرباح ({DomainConstants.CurrencySymbol})"),
                 Values = points.Select(p => new DateTimePoint(p.Date, (double)p.Profit)).ToArray(),
                 Stroke = new SolidColorPaint(Accent, 2),
                 Fill = null,
@@ -415,12 +424,19 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
 
     private void BuildPaymentChart()
     {
+        if (!HasPaymentData)
+        {
+            PaymentSeries = Array.Empty<ISeries>();
+            return;
+        }
+
         var palette = new[] { Primary, PrimaryLight, Accent, Danger };
 
         PaymentSeries = Analytics.PaymentBreakdown
+            .Where(p => p.Amount > 0)
             .Select((p, index) => (ISeries)new PieSeries<double>
             {
-                Name = p.MethodName,
+                Name = ArabicTextShaper.ShapeAndReverse(p.MethodName),
                 Values = new[] { (double)p.Amount },
                 Fill = new SolidColorPaint(palette[index % palette.Length]),
                 Stroke = new SolidColorPaint(SKColors.White, 2),
@@ -428,20 +444,28 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
                 DataLabelsPaint = new SolidColorPaint(SKColors.White),
                 DataLabelsSize = 12,
                 DataLabelsFormatter = _ => p.ShareText,
-                ToolTipLabelFormatter = _ => $"{p.MethodName}: {p.Amount:N2} {DomainConstants.CurrencySymbol} ({p.ShareText})"
+                ToolTipLabelFormatter = _ => $"{ArabicTextShaper.ShapeAndReverse(p.MethodName)}: {p.Amount:N2} {DomainConstants.CurrencySymbol} ({p.ShareText})"
             })
             .ToArray();
     }
 
     private void BuildCategoryChart()
     {
-        var top = Analytics.CategorySales.Take(8).ToList();
+        if (!HasCategoryData)
+        {
+            CategorySeries = Array.Empty<ISeries>();
+            CategoryXAxes = Array.Empty<Axis>();
+            CategoryYAxes = Array.Empty<Axis>();
+            return;
+        }
+
+        var top = Analytics.CategorySales.Where(c => c.Sales > 0).Take(8).ToList();
 
         CategorySeries = new ISeries[]
         {
             new ColumnSeries<double>
             {
-                Name = $"المبيعات ({DomainConstants.CurrencySymbol})",
+                Name = ArabicTextShaper.ShapeAndReverse($"المبيعات ({DomainConstants.CurrencySymbol})"),
                 Values = top.Select(c => (double)c.Sales).ToArray(),
                 Fill = new SolidColorPaint(Primary),
                 MaxBarWidth = 34,
@@ -454,7 +478,7 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
         {
             new Axis
             {
-                Labels = top.Select(c => Trim(c.CategoryName, 14)).ToArray(),
+                Labels = top.Select(c => ArabicTextShaper.ShapeAndReverse(Trim(c.CategoryName, 14))).ToArray(),
                 TextSize = 11,
                 LabelsPaint = new SolidColorPaint(Muted),
                 LabelsRotation = -25
@@ -475,13 +499,21 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
 
     private void BuildTopProductChart()
     {
-        var top = Analytics.TopProducts.Take(8).ToList();
+        if (!HasTopProductData)
+        {
+            TopProductSeries = Array.Empty<ISeries>();
+            TopProductXAxes = Array.Empty<Axis>();
+            TopProductYAxes = Array.Empty<Axis>();
+            return;
+        }
+
+        var top = Analytics.TopProducts.Where(p => p.Revenue > 0).Take(8).ToList();
 
         TopProductSeries = new ISeries[]
         {
             new RowSeries<double>
             {
-                Name = $"الإيراد ({DomainConstants.CurrencySymbol})",
+                Name = ArabicTextShaper.ShapeAndReverse($"الإيراد ({DomainConstants.CurrencySymbol})"),
                 Values = top.Select(p => (double)p.Revenue).ToArray(),
                 Fill = new SolidColorPaint(PrimaryLight),
                 MaxBarWidth = 24,
@@ -506,7 +538,7 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
             new Axis
             {
                 // Rows are drawn bottom-up: reverse so the best seller appears on top.
-                Labels = top.Select(p => Trim(p.ProductName, 18)).Reverse().ToArray(),
+                Labels = top.Select(p => ArabicTextShaper.ShapeAndReverse(Trim(p.ProductName, 18))).Reverse().ToArray(),
                 TextSize = 11,
                 LabelsPaint = new SolidColorPaint(Muted)
             }

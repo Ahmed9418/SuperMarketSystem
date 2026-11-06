@@ -71,6 +71,29 @@ public sealed class SettingsAndAnalyticsViewModelTests : IDisposable
     }
 
     [Fact]
+    public async Task SettingsViewModel_PaperSizeAndLogo_SaveAndLoadProperly()
+    {
+        _fixture.SignInAsAdmin();
+        var vm = new SettingsViewModel(_fixture.StoreSettings, _fixture.Reports, _fixture.Dialogs, _fixture.Session);
+
+        await Task.Delay(100);
+
+        Assert.Equal("80mm", vm.InvoicePaperSize);
+        Assert.True(vm.IsThermalSelected);
+
+        vm.InvoicePaperSize = "A4";
+        Assert.False(vm.IsThermalSelected);
+        Assert.Equal("A4", vm.SelectedPaperSizeOption?.Key);
+
+        vm.LogoPath = "C:\\fake\\logo.png";
+        await vm.SaveCommand.ExecuteAsync(null);
+
+        var saved = await _fixture.StoreSettings.GetAsync();
+        Assert.Equal("A4", saved.InvoicePaperSize);
+        Assert.Equal("C:\\fake\\logo.png", saved.LogoPath);
+    }
+
+    [Fact]
     public async Task SalesAnalyticsViewModel_PresetsAndDerivedText_ComputeAccurately()
     {
         _fixture.SignInAsAdmin();

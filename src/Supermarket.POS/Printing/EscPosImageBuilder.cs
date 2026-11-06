@@ -24,19 +24,57 @@ public static class EscPosImageBuilder
     /// <summary>Rows per raster stripe emitted by the ESC/POS command.</summary>
     private const int SliceHeight = 24;
 
-    /// <summary>Renders the receipt text into a 1-bit black &amp; white bitmap.</summary>
-    public static BitmapSource RenderText(string text, string fontFamily = "Tahoma", double fontSize = 20)
+    /// <summary>Renders the receipt text (and optional logo) into a 1-bit black &amp; white bitmap.</summary>
+    public static BitmapSource RenderText(string text, string fontFamily = "Tahoma", double fontSize = 20, string? logoPath = null)
     {
         var typeface = new Typeface(new FontFamily(fontFamily), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
         var formatted = BuildFormattedText(text, typeface, fontSize);
 
-        var height = (int)Math.Ceiling(formatted.Height) + 16;
+        BitmapImage? logo = null;
+        double logoHeight = 0;
+        double logoWidth = 0;
+
+        if (!string.IsNullOrWhiteSpace(logoPath) && File.Exists(logoPath))
+        {
+            try
+            {
+                logo = new BitmapImage();
+                logo.BeginInit();
+                logo.UriSource = new Uri(Path.GetFullPath(logoPath), UriKind.Absolute);
+                logo.CacheOption = BitmapCacheOption.OnLoad;
+                logo.EndInit();
+                logo.Freeze();
+
+                var maxLogoW = 280d;
+                var maxLogoH = 120d;
+                var scale = Math.Min(maxLogoW / logo.PixelWidth, maxLogoH / logo.PixelHeight);
+                if (scale > 1.0) scale = 1.0;
+
+                logoWidth = Math.Max(1, logo.PixelWidth * scale);
+                logoHeight = Math.Max(1, logo.PixelHeight * scale);
+            }
+            catch
+            {
+                logo = null;
+                logoHeight = 0;
+            }
+        }
+
+        var topOffset = logo != null ? logoHeight + 16 : 6;
+        var height = (int)Math.Ceiling(formatted.Height + topOffset) + 16;
         var visual = new DrawingVisual();
 
         using (var context = visual.RenderOpen())
         {
             context.DrawRectangle(Brushes.White, null, new Rect(0, 0, PrinterWidthDots, height));
-            context.DrawText(formatted, new Point(4, 6));
+
+            if (logo != null)
+            {
+                var logoX = (PrinterWidthDots - logoWidth) / 2d;
+                context.DrawImage(logo, new Rect(logoX, 6, logoWidth, logoHeight));
+            }
+
+            context.DrawText(formatted, new Point(4, topOffset));
         }
 
         var bitmap = new RenderTargetBitmap(PrinterWidthDots, Math.Max(height, 1), 203, 203, PixelFormats.Pbgra32);

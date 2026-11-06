@@ -59,5 +59,7 @@ public sealed class StoreSettingConfiguration : EntityConfigurationBase<StoreSet
         builder.Property(x => x.DecimalPlaces).HasDefaultValue(2);
         builder.Property(x => x.PricesIncludeVat).HasDefaultValue(true);
         builder.Property(x => x.AutoGenerateBarcode).HasDefaultValue(true);
+        builder.Property(x => x.InvoicePaperSize).IsRequired().IsUnicode(false).HasMaxLength(20).HasDefaultValue("80mm");
+        builder.Property(x => x.LogoPath).IsUnicode(true).HasMaxLength(500);
     }
 }

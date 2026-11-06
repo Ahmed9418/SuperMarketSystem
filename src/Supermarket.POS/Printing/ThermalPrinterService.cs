@@ -70,6 +70,17 @@ public sealed class ThermalPrinterService : IReceiptPrinterService
             name = await ResolveFromStoreSettingsAsync(name, cancellationToken);
         }
 
+        string? logoPath = null;
+        try
+        {
+            var settings = await _storeSettings.GetAsync(cancellationToken);
+            logoPath = settings.LogoPath;
+        }
+        catch
+        {
+            // Defensive
+        }
+
         return await Task.Run(() =>
         {
 
@@ -85,7 +96,7 @@ public sealed class ThermalPrinterService : IReceiptPrinterService
 
             try
             {
-                var bitmap = EscPosImageBuilder.RenderText(receiptText, fontSize: _fontSize);
+                var bitmap = EscPosImageBuilder.RenderText(receiptText, fontSize: _fontSize, logoPath: logoPath);
                 var raster = EscPosImageBuilder.BuildRasterCommands(bitmap);
 
                 var payload = new byte[InitCommands.Length + raster.Length + CutCommands.Length];

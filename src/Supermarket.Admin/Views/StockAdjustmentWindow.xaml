@@ -121,7 +121,7 @@
                             <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,12">
                                 <TextBlock Text="الكمية *" Style="{StaticResource FormLabelStyle}" />
                                 <TextBox Style="{StaticResource NumericInputStyle}"
-                                         Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}" />
+                                         Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
 
                             <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,12">

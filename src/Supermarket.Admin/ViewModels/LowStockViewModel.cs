@@ -102,9 +102,7 @@ public sealed partial class LowStockViewModel : ObservableObject
             suggestedQty,
             "توريد نواقص مخزون");
 
-        if (dialog.ShowDialog() == true)
-        {
-            await LoadAsync();
-        }
+        dialog.ShowDialog();
+        await LoadAsync();
     }
 }

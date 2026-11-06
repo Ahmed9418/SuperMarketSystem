@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Supermarket.Core.Common;
 using Supermarket.Core.Data;
@@ -65,6 +65,8 @@ public sealed class StockService : IStockService
         };
 
         _db.StockMovements.Add(movement);
+
+        await _db.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("Stock adjusted for product {ProductId}: {Delta} -> {Balance} ({Type})",
             productId, quantityDelta, newBalance, movementType);

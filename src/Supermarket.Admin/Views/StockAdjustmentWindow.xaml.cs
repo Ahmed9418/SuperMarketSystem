@@ -29,7 +29,6 @@ public partial class StockAdjustmentWindow : Window
     private void OnSaved(object? sender, EventArgs e)
     {
         DialogResult = true;
-        Close();
     }
 
     private void OnCancelClick(object sender, RoutedEventArgs e)

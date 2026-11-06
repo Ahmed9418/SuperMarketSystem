@@ -94,4 +94,12 @@ public class StoreSetting : BaseEntity
 
     /// <summary>Automatically creates the next barcode when the admin leaves the field empty.</summary>
     public bool AutoGenerateBarcode { get; set; } = true;
+
+    /// <summary>Paper size for receipts/invoices: "80mm", "A4", or "A5".</summary>
+    [MaxLength(20)]
+    public string InvoicePaperSize { get; set; } = "80mm";
+
+    /// <summary>Absolute path or local URI of the store logo displayed on receipts/invoices.</summary>
+    [MaxLength(500)]
+    public string? LogoPath { get; set; }
 }

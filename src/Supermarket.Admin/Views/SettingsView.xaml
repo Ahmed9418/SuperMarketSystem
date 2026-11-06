@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
 
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
-            <StackPanel>
+            <StackPanel Margin="0,0,0,16">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -27,7 +27,7 @@
                         <StackPanel>
                             <TextBlock Text="بيانات المتجر (تُطبع على الإيصال)" Style="{StaticResource CardTitleTextStyle}" />
 
-                            <TextBlock Text="اسم المتجر" Style="{StaticResource SettingsLabelStyle}" />
+                            <TextBlock Text="اسم المتجر *" Style="{StaticResource SettingsLabelStyle}" />
                             <TextBox Text="{Binding StoreName, UpdateSourceTrigger=PropertyChanged}" />
 
                             <TextBlock Text="العنوان" Style="{StaticResource SettingsLabelStyle}" />
@@ -43,8 +43,77 @@
 
                             <TextBlock Text="رسالة أسفل الإيصال" Style="{StaticResource SettingsLabelStyle}" />
                             <TextBox Text="{Binding ReceiptFooterMessage, UpdateSourceTrigger=PropertyChanged}"
-                                     Height="70" AcceptsReturn="True" TextWrapping="Wrap"
+                                     Height="60" AcceptsReturn="True" TextWrapping="Wrap"
                                      VerticalContentAlignment="Top" />
+
+                            <!-- Store Logo -->
+                            <TextBlock Text="شعار المتجر (اللوجو)" Style="{StaticResource SettingsLabelStyle}" Margin="0,14,0,4" />
+                            <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Preview Image or Placeholder -->
+                                    <Border Grid.Column="0" Width="90" Height="70" Background="White"
+                                            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                            CornerRadius="6" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <Grid>
+                                            <Image Source="{Binding LogoPath}" Stretch="Uniform" Margin="4">
+                                                <Image.Style>
+                                                    <Style TargetType="{x:Type Image}">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasLogo}" Value="False">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Image.Style>
+                                            </Image>
+                                            <TextBlock Text="لا يوجد شعار" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="{x:Type TextBlock}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasLogo}" Value="False">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Logo Actions -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="يُطبع الشعار في أعلى الإيصالات والفواتير (80 مم / A4 / A5)"
+                                                   FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,8" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="📁 اختيار شعار (لوجو)..." Width="150" Height="34" Margin="0,0,8,0"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    Command="{Binding ChooseLogoCommand}" IsEnabled="{Binding CanEdit}" />
+                                            <Button Content="🗑 حذف الشعار" Width="110" Height="34"
+                                                    Command="{Binding RemoveLogoCommand}" IsEnabled="{Binding CanEdit}">
+                                                <Button.Style>
+                                                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource DangerButtonStyle}">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasLogo}" Value="False">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
                         </StackPanel>
                     </Border>
 
@@ -53,17 +122,49 @@
                         <StackPanel>
                             <TextBlock Text="الطباعة والضريبة" Style="{StaticResource CardTitleTextStyle}" />
 
-                            <TextBlock Text="اسم طابعة الإيصالات في ويندوز" Style="{StaticResource SettingsLabelStyle}" />
-                            <TextBox Style="{StaticResource LatinInputStyle}"
-                                     Text="{Binding ReceiptPrinterName, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Text="اتركه فارغاً لاستخدام الطابعة الافتراضية" FontSize="11"
+                            <!-- Paper size selector: 80mm, A4, A5 -->
+                            <TextBlock Text="نوع الفاتورة / حجم الورق المطلوب *" Style="{StaticResource SettingsLabelStyle}" />
+                            <ComboBox ItemsSource="{Binding PaperSizes}"
+                                      SelectedItem="{Binding SelectedPaperSizeOption}"
+                                      DisplayMemberPath="Title" Height="36" />
+                            <TextBlock Text="{Binding SelectedPaperSizeOption.Description}" FontSize="11"
+                                       Foreground="{StaticResource PrimaryBrush}" FontWeight="SemiBold" Margin="0,3,0,6" />
+
+                            <!-- Printer selector & Test Print -->
+                            <TextBlock Text="اسم طابعة الفواتير والإيصالات في ويندوز" Style="{StaticResource SettingsLabelStyle}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0" ItemsSource="{Binding InstalledPrinters}"
+                                          Text="{Binding ReceiptPrinterName, UpdateSourceTrigger=PropertyChanged}"
+                                          IsEditable="True" Height="36" Margin="0,0,8,0" />
+                                <Button Grid.Column="1" Content="🖨 تجربة الطباعة" Width="120" Height="36"
+                                        Command="{Binding TestPrintCommand}" />
+                            </Grid>
+                            <TextBlock Text="اختر الطابعة من القائمة أو اتركها فارغة لاستخدام الطابعة الافتراضية للويندوز" FontSize="11"
                                        Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
 
-                            <TextBlock Text="عرض سطر الإيصال (حرف)" Style="{StaticResource SettingsLabelStyle}" />
-                            <ComboBox ItemsSource="{Binding LineWidths}" SelectedItem="{Binding ReceiptLineWidth}" Height="36" />
-                            <TextBlock Text="{Binding LineWidthHint}" FontSize="11"
-                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
+                            <!-- Line width for thermal 80mm -->
+                            <StackPanel Margin="0,10,0,0">
+                                <StackPanel.Style>
+                                    <Style TargetType="{x:Type StackPanel}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsThermalSelected}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock Text="عرض سطر الإيصال الحراري (حرف)" Style="{StaticResource SettingsLabelStyle}" Margin="0,0,0,4" />
+                                <ComboBox ItemsSource="{Binding LineWidths}" SelectedItem="{Binding ReceiptLineWidth}" Height="36" />
+                                <TextBlock Text="{Binding LineWidthHint}" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,3,0,0" />
+                            </StackPanel>
 
+                            <!-- Fiscal settings -->
                             <TextBlock Text="نسبة ضريبة القيمة المضافة الافتراضية %"
                                        Style="{StaticResource SettingsLabelStyle}" />
                             <TextBox Style="{StaticResource NumericInputStyle}"
@@ -87,17 +188,18 @@
                         <TextBlock Text="معلومات النظام" Style="{StaticResource CardTitleTextStyle}" />
                         <TextBlock Margin="0,8,0,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
                             <Run Text="الإصدار:" />
-                            <Run Text="1.5.0 - المرحلة الخامسة" />
-                            <Run Text="   |   قاعدة البيانات: SQL Server / Entity Framework Core 8" />
+                            <Run Text="1.6.0 - طباعة الفواتير الذكية" />
+                            <Run Text="   |   أحجام الفواتير المدعومة: 80mm حراري، A4 قياسية، A5 مدمجة" />
                         </TextBlock>
                         <TextBlock Margin="0,4,0,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
                                    TextWrapping="Wrap"
-                                   Text="أي تعديل على اسم المتجر أو عرض السطر يظهر فوراً على الإيصال التالي في نقطة البيع." />
+                                   Text="أي تعديل على اسم المتجر أو الشعار أو نوع الفاتورة يظهر فوراً على الفواتير والإيصالات التالية." />
                     </StackPanel>
                 </Border>
             </StackPanel>
         </ScrollViewer>
 
+        <!-- Bottom Actions Bar -->
         <Border Grid.Row="1" Margin="0,12,0,-12" Padding="14,8" Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
             <Grid>
@@ -107,12 +209,15 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" FontSize="12"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}" />
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="💾 حفظ الإعدادات" Width="160" Height="38" Margin="0,0,8,0"
+                    <Button Content="🖨 اختبار الطباعة" Width="140" Height="38" Margin="0,0,8,0"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding TestPrintCommand}" />
+                    <Button Content="💾 حفظ الإعدادات" Width="150" Height="38" Margin="0,0,8,0"
                             Command="{Binding SaveCommand}" IsEnabled="{Binding CanEdit}" />
-                    <Button Content="🔄 إعادة التحميل" Width="140" Height="38"
+                    <Button Content="🔄 إعادة التحميل" Width="130" Height="38"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding LoadCommand}" />
                 </StackPanel>

@@ -125,6 +125,8 @@ BEGIN
         [PricesIncludeVat] bit NOT NULL DEFAULT CAST(1 AS bit),
         [DecimalPlaces] int NOT NULL DEFAULT 2,
         [AutoGenerateBarcode] bit NOT NULL DEFAULT CAST(1 AS bit),
+        [InvoicePaperSize] varchar(20) NOT NULL DEFAULT '80mm',
+        [LogoPath] nvarchar(500) NULL,
         [CreatedAtUtc] datetime2 NOT NULL DEFAULT (GETUTCDATE()),
         [UpdatedAtUtc] datetime2 NULL,
         [CreatedBy] nvarchar(120) NULL,
