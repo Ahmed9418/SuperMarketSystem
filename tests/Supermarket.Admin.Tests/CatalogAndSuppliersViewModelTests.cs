@@ -113,5 +113,42 @@ public sealed class CatalogAndSuppliersViewModelTests : IDisposable
         Assert.NotNull(supplier);
         Assert.Equal("أحمد خالد", supplier!.ContactPerson);
     }
-}
 
+    [Fact]
+    public async Task SupplierEditViewModel_CreditAndDebitBalance_PersistCorrectly()
+    {
+        _fixture.SignInAsAdmin();
+
+        // 1. Credit balance (رصيد علينا - موجب)
+        var vmCredit = new SupplierEditViewModel(_fixture.SupplierService, _fixture.Dialogs);
+        await vmCredit.InitializeAsync(0);
+        vmCredit.SupplierName = "مورد رصيد علينا";
+        vmCredit.CreditBalance = 5000m;
+        await vmCredit.SaveCommand.ExecuteAsync(null);
+
+        var creditSupplier = await _fixture.Database.Context.Suppliers.FirstAsync(s => s.Name == "مورد رصيد علينا");
+        Assert.Equal(5000m, creditSupplier.Balance);
+
+        // Edit and initialize existing credit supplier
+        var vmEditCredit = new SupplierEditViewModel(_fixture.SupplierService, _fixture.Dialogs);
+        await vmEditCredit.InitializeAsync(creditSupplier.Id);
+        Assert.Equal(5000m, vmEditCredit.CreditBalance);
+        Assert.Equal(0m, vmEditCredit.DebitBalance);
+
+        // 2. Debit balance (رصيد لنا - سالب)
+        var vmDebit = new SupplierEditViewModel(_fixture.SupplierService, _fixture.Dialogs);
+        await vmDebit.InitializeAsync(0);
+        vmDebit.SupplierName = "مورد رصيد لنا";
+        vmDebit.DebitBalance = 1500m;
+        await vmDebit.SaveCommand.ExecuteAsync(null);
+
+        var debitSupplier = await _fixture.Database.Context.Suppliers.FirstAsync(s => s.Name == "مورد رصيد لنا");
+        Assert.Equal(-1500m, debitSupplier.Balance);
+
+        // Edit and initialize existing debit supplier
+        var vmEditDebit = new SupplierEditViewModel(_fixture.SupplierService, _fixture.Dialogs);
+        await vmEditDebit.InitializeAsync(debitSupplier.Id);
+        Assert.Equal(1500m, vmEditDebit.DebitBalance);
+        Assert.Equal(0m, vmEditDebit.CreditBalance);
+    }
+}
