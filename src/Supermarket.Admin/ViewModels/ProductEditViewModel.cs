@@ -138,6 +138,10 @@ public sealed partial class ProductEditViewModel : ObservableObject
             Units = await _catalogService.GetUnitsAsync();
             Suppliers = await _catalogService.GetSuppliersAsync();
 
+            OnPropertyChanged(nameof(Categories));
+            OnPropertyChanged(nameof(Units));
+            OnPropertyChanged(nameof(Suppliers));
+
             var settings = await _storeSettings.GetAsync();
             VatRate = settings.DefaultVatRate * 100m;
 

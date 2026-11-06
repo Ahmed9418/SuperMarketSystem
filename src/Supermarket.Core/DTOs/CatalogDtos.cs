@@ -104,6 +104,12 @@ public sealed class SupplierDto
 
     public decimal Balance { get; set; }
 
+    /// <summary>Balance due to the store from the supplier (مدين / رصيد لنا).</summary>
+    public decimal DebitBalance => Balance < 0 ? -Balance : 0m;
+
+    /// <summary>Balance owed by the store to the supplier (دائن / رصيد علينا).</summary>
+    public decimal CreditBalance => Balance > 0 ? Balance : 0m;
+
     public string? Notes { get; set; }
 
     public bool IsActive { get; set; }

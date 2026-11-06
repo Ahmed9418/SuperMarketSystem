@@ -65,11 +65,11 @@
                         <DataGridTextColumn Header="الهاتف" Width="130"
                                             Binding="{Binding PhoneNumber, Converter={StaticResource RtlIsolation}}" />
                         <DataGridTextColumn Header="العنوان" Binding="{Binding Address}" Width="200" />
-                        <DataGridTextColumn Header="الرقم الضريبي" Width="120"
-                                            Binding="{Binding TaxNumber, Converter={StaticResource RtlIsolation}}" />
                         <DataGridTextColumn Header="عدد المنتجات" Binding="{Binding ProductCount}" Width="110" />
-                        <DataGridTextColumn Header="الرصيد" Width="130"
-                                            Binding="{Binding Balance, Converter={StaticResource EgpCurrency}}" />
+                        <DataGridTextColumn Header="رصيد لنا" Width="120"
+                                            Binding="{Binding DebitBalance, Converter={StaticResource EgpCurrency}}" />
+                        <DataGridTextColumn Header="رصيد علينا" Width="120"
+                                            Binding="{Binding CreditBalance, Converter={StaticResource EgpCurrency}}" />
                         <DataGridCheckBoxColumn Header="نشط" Binding="{Binding IsActive}" Width="70" />
                     </DataGrid.Columns>
                 </DataGrid>
