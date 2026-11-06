@@ -84,6 +84,21 @@ public sealed partial class StockAdjustmentViewModel : ObservableObject
     [ObservableProperty]
     private bool isBusy;
 
+    [ObservableProperty]
+    private bool isProductPreselected;
+
+    public string Title => SelectedMovementType?.MovementType == StockMovementType.Purchase
+        ? "توريد بضاعة"
+        : "تسوية مخزون";
+
+    public string SectionTitle => IsProductPreselected
+        ? "1) بيانات المنتج"
+        : "1) اختيار المنتج";
+
+    public string SaveButtonCaption => SelectedMovementType?.MovementType == StockMovementType.Purchase
+        ? "✔ تنفيذ التوريد"
+        : "✔ تنفيذ التسوية";
+
     /// <summary>Live preview of the balance after the correction.</summary>
     public decimal BalanceAfter => SelectedDirection?.Direction == StockAdjustmentDirection.Increase
         ? CurrentStock + Quantity
@@ -141,8 +156,17 @@ public sealed partial class StockAdjustmentViewModel : ObservableObject
                 SelectedProduct = product;
                 CurrentStock = product.StockQuantity;
                 UnitName = product.UnitName;
+                IsProductPreselected = true;
             }
         }
+        else
+        {
+            IsProductPreselected = false;
+        }
+
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(SectionTitle));
+        OnPropertyChanged(nameof(SaveButtonCaption));
     }
 
     /// <summary>Search the catalog so the operator can pick a product without leaving the dialog.</summary>
@@ -204,6 +228,9 @@ public sealed partial class StockAdjustmentViewModel : ObservableObject
         {
             SelectedDirection = direction;
         }
+
+        OnPropertyChanged(nameof(Title));
+        OnPropertyChanged(nameof(SaveButtonCaption));
     }
 
     [RelayCommand]

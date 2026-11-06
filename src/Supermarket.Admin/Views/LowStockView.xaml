@@ -6,6 +6,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
         <!-- Summary card -->
         <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
             <Grid>
@@ -35,6 +36,7 @@
                 </StackPanel>
             </Grid>
         </Border>
+
         <!-- Grid -->
         <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="0">
             <DataGrid ItemsSource="{Binding Products}"
@@ -50,6 +52,10 @@
                             <DataTrigger Binding="{Binding IsOutOfStock}" Value="True">
                                 <Setter Property="Background" Value="{StaticResource DangerLightBrush}" />
                             </DataTrigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
                         </Style.Triggers>
                     </Style>
                 </DataGrid.RowStyle>
@@ -67,16 +73,6 @@
                                         Binding="{Binding ReorderQuantity, StringFormat={}{0:N2}}" />
                     <DataGridTextColumn Header="تكلفة التوريد" Width="140"
                                         Binding="{Binding StockValue, Converter={StaticResource EgpCurrency}}" />
-                    <DataGridTemplateColumn Header="إجراء" Width="100">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Content="📥 توريد"
-                                        Height="28" Padding="10,0" FontSize="12"
-                                        Command="{Binding DataContext.ReceiveStockCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
