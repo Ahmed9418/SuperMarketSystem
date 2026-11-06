@@ -85,10 +85,11 @@
         <Setter Property="FontFamily" Value="Consolas, Segoe UI, Tahoma" />
     </Style>
 
-    <!-- Latin password: user names and passwords are typed left to right. -->
+    <!-- Latin password: user names and passwords are typed left to right.
+         PasswordBox has NO TextAlignment property (unlike TextBox); the alignment follows
+         FlowDirection, so LeftToRight alone is enough here. -->
     <Style x:Key="LatinPasswordStyle" TargetType="{x:Type PasswordBox}">
         <Setter Property="FlowDirection" Value="LeftToRight" />
-        <Setter Property="TextAlignment" Value="Left" />
         <Setter Property="FontFamily" Value="Consolas, Segoe UI, Tahoma" />
     </Style>
 

@@ -67,8 +67,8 @@
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="المنتج المختار" Style="{StaticResource FormLabelStyle}" />
                                 <TextBlock Text="{Binding SelectedProduct.Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                <TextBlock Text="{Binding SelectedProduct.Barcode}" FontSize="12"
-                                           Converter="{StaticResource RtlIsolation}"
+                                <TextBlock Text="{Binding SelectedProduct.Barcode, Converter={StaticResource RtlIsolation}}"
+                                           FontSize="12"
                                            Foreground="{StaticResource TextSecondaryBrush}" />
                             </StackPanel>
 
