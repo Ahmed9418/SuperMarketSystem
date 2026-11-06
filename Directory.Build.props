@@ -1,0 +1,23 @@
+<Project>
+
+  <!--
+    Central build settings shared by every project in the solution.
+    Kept deliberately strict: nullable reference types are enabled, warnings are
+    treated as errors for the Core library work so that nothing slips into a later phase.
+  -->
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningLevel>6</WarningLevel>
+    <NeutralLanguage>ar-EG</NeutralLanguage>
+    <Company>Supermarket Management System</Company>
+    <Product>Supermarket Management System</Product>
+    <Version>1.0.0</Version>
+    <!-- Required when building Windows (WPF) projects on a non-Windows build agent. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+</Project>

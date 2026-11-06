@@ -1,0 +1,177 @@
+<Window x:Class="Supermarket.Admin.Views.StockAdjustmentWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="تسوية مخزون"
+        Height="700" Width="760"
+        FlowDirection="RightToLeft"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize"
+        MinHeight="620" MinWidth="700"
+        ShowInTaskbar="False"
+        Background="{StaticResource CanvasBrush}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,14">
+            <TextBlock Text="تسوية مخزون" Style="{StaticResource PageTitleTextStyle}" />
+            <TextBlock Text="تُستخدم لتعديل الرصيد يدوياً (تسوية، تالف، مرتجع). كل حركة تُوثق في كارت الصنف باسم المستخدم وسبب التسوية."
+                       FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                       TextWrapping="Wrap" Margin="0,4,0,0" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- ========================= Product picker ========================= -->
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="1) اختيار المنتج" Style="{StaticResource CardTitleTextStyle}" />
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged, Delay=200}"
+                                     ToolTip="اكتب اسم المنتج أو البار كود ثم اضغط بحث" />
+                            <Button Grid.Column="1" Content="بحث" Width="100" Margin="8,0,0,0"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Command="{Binding SearchCommand}" />
+                        </Grid>
+
+                        <ComboBox Margin="0,10,0,0"
+                                  Height="36"
+                                  ItemsSource="{Binding SearchResults}"
+                                  DisplayMemberPath="Name"
+                                  SelectedItem="{Binding SelectedProduct}"
+                                  ToolTip="نتائج البحث" />
+
+                        <Grid Margin="0,14,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="المنتج المختار" Style="{StaticResource FieldLabelTextStyle}" />
+                                <TextBlock Text="{Binding SelectedProduct.Name}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding SelectedProduct.Barcode}" FontSize="12"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="الرصيد الحالي" Style="{StaticResource FieldLabelTextStyle}" />
+                                <TextBlock Text="{Binding CurrentStock, StringFormat={}{0:N2}}"
+                                           FontSize="20" FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryDarkBrush}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="وحدة القياس" Style="{StaticResource FieldLabelTextStyle}" />
+                                <TextBlock Text="{Binding UnitName}" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- ========================= Adjustment data ======================== -->
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="2) بيانات التسوية" Style="{StaticResource CardTitleTextStyle}" />
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,12">
+                                <TextBlock Text="الاتجاه *" Style="{StaticResource FieldLabelTextStyle}" />
+                                <ComboBox ItemsSource="{Binding Directions}"
+                                          DisplayMemberPath="Caption"
+                                          SelectedItem="{Binding SelectedDirection}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,12">
+                                <TextBlock Text="نوع الحركة *" Style="{StaticResource FieldLabelTextStyle}" />
+                                <ComboBox ItemsSource="{Binding MovementTypes}"
+                                          DisplayMemberPath="Caption"
+                                          SelectedItem="{Binding SelectedMovementType}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,12">
+                                <TextBlock Text="الكمية *" Style="{StaticResource FieldLabelTextStyle}" />
+                                <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,12">
+                                <TextBlock Text="رقم المستند (اختياري)" Style="{StaticResource FieldLabelTextStyle}" />
+                                <TextBox Text="{Binding ReferenceNumber, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3">
+                                <TextBlock Text="سبب التسوية * (إجباري للتوثيق)" Style="{StaticResource FieldLabelTextStyle}" />
+                                <TextBox Text="{Binding Reason, UpdateSourceTrigger=PropertyChanged}"
+                                         Height="60" AcceptsReturn="True" TextWrapping="Wrap"
+                                         VerticalContentAlignment="Top" />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Live preview -->
+                        <Border Background="{StaticResource PrimaryLightBrush}" CornerRadius="8"
+                                Padding="12" Margin="0,14,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="الرصيد بعد التسوية" Style="{StaticResource FieldLabelTextStyle}" />
+                                    <TextBlock Text="{Binding DirectionHint}" FontSize="12"
+                                               Foreground="{StaticResource PrimaryDarkBrush}" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding BalanceAfter, StringFormat={}{0:N2}}"
+                                           FontSize="26" FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryDarkBrush}" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- =============================== Footer ============================== -->
+        <Grid Grid.Row="2" Margin="0,14,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding ErrorMessage}"
+                       Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap"
+                       VerticalAlignment="Center"
+                       Visibility="{Binding ErrorMessage, Converter={StaticResource EmptyStringToVisibility}}" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="✔ تنفيذ التسوية" Width="160" Command="{Binding SaveCommand}" IsDefault="True" />
+                <Button Content="إلغاء" Width="110" Margin="8,0,0,0"
+                        Style="{StaticResource GhostButtonStyle}"
+                        IsCancel="True" Click="OnCancelClick" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

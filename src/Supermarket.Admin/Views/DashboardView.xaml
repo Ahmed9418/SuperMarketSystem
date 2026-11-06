@@ -1,0 +1,115 @@
+<UserControl x:Class="Supermarket.Admin.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+
+            <!-- ========================= KPI cards row ========================= -->
+            <UniformGrid Columns="4" Margin="0,0,0,14">
+
+                <!-- Today sales -->
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="مبيعات اليوم" Style="{StaticResource FieldLabelTextStyle}" />
+                        <TextBlock Text="{Binding Summary.TodaySales, Converter={StaticResource EgpCurrency}}"
+                                   FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />
+                        <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,6,0,0">
+                            <Run Text="{Binding Summary.TodayInvoiceCount, Mode=OneWay, StringFormat='{}{0:N0}'}" />
+                            <Run Text="فاتورة" />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Month sales -->
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="مبيعات الشهر" Style="{StaticResource FieldLabelTextStyle}" />
+                        <TextBlock Text="{Binding Summary.MonthSales, Converter={StaticResource EgpCurrency}}"
+                                   FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryDarkBrush}" />
+                        <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,6,0,0">
+                            <Run Text="صافي الربح:" />
+                            <Run Text="{Binding Summary.MonthProfit, Mode=OneWay, Converter={StaticResource EgpCurrency}}" />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Stock value -->
+                <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="قيمة المخزون (بسعر التكلفة)" Style="{StaticResource FieldLabelTextStyle}" />
+                        <TextBlock Text="{Binding Summary.TotalStockValue, Converter={StaticResource EgpCurrency}}"
+                                   FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,6,0,0">
+                            <Run Text="{Binding Summary.TotalProducts, Mode=OneWay}" />
+                            <Run Text="منتج -" />
+                            <Run Text="{Binding Summary.TotalCategories, Mode=OneWay}" />
+                            <Run Text="قسم" />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- Low stock -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel>
+                        <TextBlock Text="نواقص المخزون" Style="{StaticResource FieldLabelTextStyle}" />
+                        <TextBlock Text="{Binding Summary.LowStockProducts}"
+                                   FontSize="24" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" />
+                        <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,6,0,0">
+                            <Run Text="غير متوفر:" />
+                            <Run Text="{Binding Summary.OutOfStockProducts, Mode=OneWay}" />
+                            <Run Text="منتج" />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- ==================== Low stock alert banner ==================== -->
+            <Border Background="{StaticResource WarningLightBrush}" BorderBrush="{StaticResource WarningBrush}" BorderThickness="1"
+                    CornerRadius="8" Padding="14,10" Margin="0,0,0,14"
+                    Visibility="{Binding Summary.LowStockProducts, Converter={StaticResource NullToVisibility}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="⚠" FontSize="18" Foreground="{StaticResource WarningBrush}" Margin="0,0,8,0" />
+                    <TextBlock Text="تنبيه: توجد منتجات وصلت إلى حد الطلب الأدنى أو نفدت من المخزن. راجع قائمة النواقص."
+                               Foreground="{StaticResource WarningDarkBrush}" />
+                </StackPanel>
+            </Border>
+
+            <!-- ===================== Low stock product grid ==================== -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="أهم المنتجات التي تحتاج توريد"
+                                   Style="{StaticResource CardTitleTextStyle}" Margin="0" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <TextBlock Text="{Binding LastUpdatedText}" FontSize="12"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <Button Content="تحديث" Style="{StaticResource SecondaryButtonStyle}"
+                                    Height="30" Command="{Binding LoadCommand}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <DataGrid ItemsSource="{Binding LowStockProducts}" MaxHeight="420">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="اسم المنتج" Binding="{Binding Name}" Width="*" />
+                            <DataGridTextColumn Header="البار كود" Binding="{Binding Barcode}" Width="150" />
+                            <DataGridTextColumn Header="القسم" Binding="{Binding CategoryName}" Width="130" />
+                            <DataGridTextColumn Header="الكمية" Binding="{Binding StockQuantity, StringFormat={}{0:N2}}" Width="90" />
+                            <DataGridTextColumn Header="حد الطلب" Binding="{Binding MinimumStockLevel, StringFormat={}{0:N2}}" Width="90" />
+                            <DataGridTextColumn Header="كمية إعادة الطلب" Binding="{Binding ReorderQuantity, StringFormat={}{0:N2}}" Width="130" />
+                            <DataGridTextColumn Header="سعر التكلفة"
+                                                Binding="{Binding CostPrice, Converter={StaticResource EgpCurrency}}"
+                                                Width="130" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

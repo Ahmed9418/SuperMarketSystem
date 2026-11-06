@@ -1,0 +1,103 @@
+<UserControl x:Class="Supermarket.Admin.Views.UsersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Padding="14,10" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                    <TextBlock Text="بحث (الاسم / المستخدم / الهاتف)" Style="{StaticResource FieldLabelTextStyle}" />
+                    <TextBox Width="240" Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                    <TextBlock Text="الدور" Style="{StaticResource FieldLabelTextStyle}" />
+                    <ComboBox Width="150" ItemsSource="{Binding RoleFilters}" SelectedItem="{Binding RoleFilter}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Content="➕ مستخدم جديد" Width="150" Style="{StaticResource BaseButtonStyle}"
+                            Command="{Binding AddUserCommand}" Margin="0,0,8,0" />
+                    <Button Content="🔄 تحديث" Width="110" Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding LoadCommand}" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="3" VerticalAlignment="Bottom" Margin="0,0,0,12" FontSize="12"
+                           Foreground="{StaticResource TextSecondaryBrush}" Text="{Binding CurrentUserHint}" />
+            </Grid>
+        </Border>
+
+        <!-- Grid -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="6">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <DataGrid Grid.Row="0" x:Name="UsersGrid" ItemsSource="{Binding FilteredUsers}"
+                          SelectedItem="{Binding SelectedUser}"
+                          IsReadOnly="True" AutoGenerateColumns="False"
+                          MouseDoubleClick="OnRowDoubleClick">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="الاسم الكامل" Binding="{Binding FullName}" Width="*" />
+                        <DataGridTextColumn Header="اسم المستخدم" Binding="{Binding UserName}" Width="160" />
+                        <DataGridTextColumn Header="الدور" Binding="{Binding RoleName}" Width="130" />
+                        <DataGridTextColumn Header="الهاتف" Binding="{Binding PhoneNumber}" Width="130" />
+                        <DataGridTextColumn Header="الحالة" Binding="{Binding StatusName}" Width="90" />
+                        <DataGridTextColumn Header="الصلاحيات الممنوحة"
+                                            Binding="{Binding GrantedPermissionCount}" Width="140" />
+                        <DataGridTextColumn Header="مخصصة" Binding="{Binding HasCustomPermissions}" Width="90" />
+                        <DataGridTextColumn Header="آخر دخول"
+                                            Binding="{Binding LastLoginAtUtc, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}"
+                                            Width="150" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="4,10,4,2">
+                    <Button Content="✏ تعديل البيانات" Width="150" Style="{StaticResource BaseButtonStyle}"
+                            Command="{Binding EditUserCommand}" Margin="0,0,8,0" />
+                    <Button Content="🔐 الصلاحيات" Width="140" Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding EditPermissionsCommand}" Margin="0,0,8,0" />
+                    <Button Content="🔑 كلمة المرور" Width="140" Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding ResetPasswordCommand}" Margin="0,0,8,0" />
+                    <Button Content="🔢 الرقم السري" Width="140" Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding ResetPinCommand}" Margin="0,0,8,0" />
+                    <Button Content="⏻ إيقاف / تنشيط" Width="150" Style="{StaticResource WarningButtonStyle}"
+                            Command="{Binding ToggleActiveCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Padding="14,8" Margin="0,12,0,-12" Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                           Text="{Binding StatusMessage}" />
+                <ProgressBar Grid.Column="1" Width="140" Height="6" IsIndeterminate="{Binding IsBusy}"
+                             Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibility}}"
+                             Foreground="{StaticResource PrimaryBrush}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

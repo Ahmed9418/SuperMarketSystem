@@ -1,0 +1,186 @@
+<UserControl x:Class="Supermarket.Admin.Views.ProductsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ============================= Toolbar ============================= -->
+        <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Search + filters -->
+                <WrapPanel Grid.Column="0" Orientation="Horizontal">
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="بحث بالاسم أو البار كود" Style="{StaticResource FieldLabelTextStyle}" />
+                        <TextBox Width="280"
+                                 Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged, Delay=100}" />
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="القسم" Style="{StaticResource FieldLabelTextStyle}" />
+                        <ComboBox Width="180"
+                                  ItemsSource="{Binding Categories}"
+                                  DisplayMemberPath="Name"
+                                  SelectedItem="{Binding SelectedCategory}" />
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,12,0" VerticalAlignment="Bottom">
+                        <CheckBox Content="نواقص المخزون فقط"
+                                  IsChecked="{Binding LowStockOnly}"
+                                  Height="34" VerticalContentAlignment="Center"
+                                  FlowDirection="RightToLeft" />
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,12,0" VerticalAlignment="Bottom">
+                        <Button Content="مسح الفلاتر" Style="{StaticResource GhostButtonStyle}"
+                                Command="{Binding ClearFiltersCommand}" />
+                    </StackPanel>
+                </WrapPanel>
+
+                <!-- Actions -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Content="➕ منتج جديد"
+                            Width="140"
+                            Command="{Binding OpenEditorCommand}"
+                            CommandParameter="{x:Null}" />
+                    <Button Content="✏ تعديل المنتج المحدد"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Margin="8,0,0,0"
+                            Width="180"
+                            Command="{Binding OpenEditorCommand}"
+                            CommandParameter="{Binding SelectedProduct}" />
+                    <Button Content="⏻ تفعيل / إيقاف"
+                            Style="{StaticResource WarningButtonStyle}"
+                            Margin="8,0,0,0"
+                            Width="140"
+                            Command="{Binding ToggleActiveCommand}"
+                            CommandParameter="{Binding SelectedProduct}" />
+                    <Button Content="⚖ تسوية مخزون"
+                            Style="{StaticResource GhostButtonStyle}"
+                            Margin="8,0,0,0"
+                            Width="140"
+                            Command="{Binding AdjustStockCommand}"
+                            CommandParameter="{Binding SelectedProduct}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ======================= Sorting quick filters ====================== -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="ترتيب حسب:" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,8,0" />
+            <Button Content="الاسم" Style="{StaticResource GhostButtonStyle}" Height="28" Margin="0,0,6,0"
+                    Command="{Binding SortCommand}" CommandParameter="Name" />
+            <Button Content="الكمية" Style="{StaticResource GhostButtonStyle}" Height="28" Margin="0,0,6,0"
+                    Command="{Binding SortCommand}" CommandParameter="StockQuantity" />
+            <Button Content="سعر البيع" Style="{StaticResource GhostButtonStyle}" Height="28" Margin="0,0,6,0"
+                    Command="{Binding SortCommand}" CommandParameter="SellingPrice" />
+            <Button Content="تاريخ الإضافة" Style="{StaticResource GhostButtonStyle}" Height="28"
+                    Command="{Binding SortCommand}" CommandParameter="CreatedAtUtc" />
+        </StackPanel>
+
+        <!-- ============================== Grid =============================== -->
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="0">
+            <DataGrid x:Name="ProductsGrid"
+                      ItemsSource="{Binding Products}"
+                      SelectedItem="{Binding SelectedProduct}">
+                <DataGrid.RowStyle>
+                    <Style TargetType="{x:Type DataGridRow}">
+                        <Style.Triggers>
+                            <!-- Low stock rows are tinted amber, out of stock rows red. -->
+                            <DataTrigger Binding="{Binding IsLowStock}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource WarningLightBrush}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsOutOfStock}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource DangerLightBrush}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                                <Setter Property="FontStyle" Value="Italic" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="اسم المنتج" Binding="{Binding Name}" Width="*" MinWidth="200" />
+                    <DataGridTextColumn Header="البار كود" Binding="{Binding Barcode}" Width="140" />
+                    <DataGridTextColumn Header="القسم" Binding="{Binding CategoryName}" Width="120" />
+                    <DataGridTextColumn Header="الوحدة" Binding="{Binding UnitName}" Width="80" />
+                    <DataGridTextColumn Header="سعر الشراء"
+                                        Binding="{Binding CostPrice, Converter={StaticResource EgpCurrency}}"
+                                        Width="120" />
+                    <DataGridTextColumn Header="سعر البيع"
+                                        Binding="{Binding SellingPrice, Converter={StaticResource EgpCurrency}}"
+                                        Width="120" />
+                    <DataGridTextColumn Header="الكمية" Width="90"
+                                        Binding="{Binding StockQuantity, StringFormat={}{0:N2}}" />
+                    <DataGridTextColumn Header="حد الطلب" Width="90"
+                                        Binding="{Binding MinimumStockLevel, StringFormat={}{0:N2}}" />
+                    <DataGridTemplateColumn Header="الحالة" Width="100">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock VerticalAlignment="Center"
+                                           FontWeight="SemiBold" HorizontalAlignment="Right">
+                                    <TextBlock.Style>
+                                        <Style TargetType="{x:Type TextBlock}">
+                                            <Setter Property="Text" Value="متوفر" />
+                                            <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLowStock}" Value="True">
+                                                    <Setter Property="Text" Value="قارب على النفاد" />
+                                                    <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsOutOfStock}" Value="True">
+                                                    <Setter Property="Text" Value="غير متوفر" />
+                                                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                    <Setter Property="Text" Value="موقوف" />
+                                                    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- ============================= Footer ============================== -->
+        <Grid Grid.Row="3" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="{Binding StatusMessage}"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       VerticalAlignment="Center" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="السابق" Style="{StaticResource SecondaryButtonStyle}" Width="90"
+                        IsEnabled="{Binding HasPreviousPage}"
+                        Command="{Binding PreviousPageCommand}" />
+                <TextBlock Text="{Binding PageNumber, StringFormat='صفحة {0}'}"
+                           Margin="12,0" VerticalAlignment="Center" />
+                <Button Content="التالي" Style="{StaticResource SecondaryButtonStyle}" Width="90"
+                        IsEnabled="{Binding HasNextPage}"
+                        Command="{Binding NextPageCommand}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,166 @@
+<UserControl x:Class="Supermarket.Admin.Views.CatalogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FlowDirection="RightToLeft">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="الأقسام ووحدات القياس" Style="{StaticResource PageTitleTextStyle}" />
+                    <TextBlock Text="تُستخدم هذه القوائم في شاشة المنتجات وشاشة البيع (نقطة البيع تعرض الأقسام كأزرار سريعة)."
+                               FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="🔄 تحديث" Style="{StaticResource SecondaryButtonStyle}"
+                        Width="110" Command="{Binding LoadCommand}" />
+            </Grid>
+        </Border>
+
+        <!-- Tabs -->
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" FlowDirection="RightToLeft">
+
+            <!-- ============================== CATEGORIES ============================== -->
+            <TabItem Header="الأقسام" FontSize="15" FontWeight="SemiBold">
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Grid -->
+                    <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}" Padding="0">
+                        <DataGrid ItemsSource="{Binding Categories}"
+                                  SelectedItem="{Binding SelectedCategory}">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="{x:Type DataGridRow}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+                                            <Setter Property="FontStyle" Value="Italic" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="اسم القسم" Binding="{Binding Name}" Width="*" MinWidth="160" />
+                                <DataGridTextColumn Header="القسم الرئيسي" Binding="{Binding ParentCategoryName}" Width="140" />
+                                <DataGridTextColumn Header="الوصف" Binding="{Binding Description}" Width="180" />
+                                <DataGridTextColumn Header="الترتيب" Binding="{Binding DisplayOrder}" Width="80" />
+                                <DataGridTextColumn Header="عدد المنتجات" Binding="{Binding ProductCount}" Width="110" />
+                                <DataGridCheckBoxColumn Header="نشط" Binding="{Binding IsActive}" Width="60" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <!-- Inline form -->
+                    <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding CategoryFormTitle}" Style="{StaticResource CardTitleTextStyle}" />
+
+                            <TextBlock Text="اسم القسم *" Style="{StaticResource FieldLabelTextStyle}" />
+                            <TextBox Text="{Binding CategoryName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                            <TextBlock Text="القسم الرئيسي" Style="{StaticResource FieldLabelTextStyle}" />
+                            <ComboBox ItemsSource="{Binding ParentCategories}"
+                                      DisplayMemberPath="Name"
+                                      SelectedItem="{Binding SelectedParentCategory}"
+                                      Margin="0,0,0,10" />
+
+                            <TextBlock Text="الوصف" Style="{StaticResource FieldLabelTextStyle}" />
+                            <TextBox Text="{Binding CategoryDescription, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                            <TextBlock Text="ترتيب العرض" Style="{StaticResource FieldLabelTextStyle}" />
+                            <TextBox Text="{Binding CategoryDisplayOrder, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                            <CheckBox Content="القسم مُفعّل" IsChecked="{Binding CategoryIsActive}"
+                                      FlowDirection="RightToLeft" Margin="0,0,0,14" />
+
+                            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}"
+                                       TextWrapping="Wrap" Margin="0,0,0,8"
+                                       Visibility="{Binding ErrorMessage, Converter={StaticResource EmptyStringToVisibility}}" />
+
+                            <Button Content="💾 حفظ القسم" Command="{Binding SaveCategoryCommand}" Margin="0,0,0,8" />
+                            <Button Content="➕ قسم جديد" Style="{StaticResource GhostButtonStyle}"
+                                    Command="{Binding NewCategoryCommand}" Margin="0,0,0,8" />
+                            <Button Content="⏻ تفعيل / إيقاف القسم المحدد"
+                                    Style="{StaticResource WarningButtonStyle}"
+                                    Command="{Binding ToggleCategoryActiveCommand}"
+                                    CommandParameter="{Binding SelectedCategory}"
+                                    Margin="0,0,0,8" />
+                            <Button Content="🗑 حذف القسم المحدد"
+                                    Style="{StaticResource DangerButtonStyle}"
+                                    IsEnabled="{Binding CanEdit}"
+                                    ToolTip="حذف القسم المحدد (تُنقل منتجاته إلى قسم عام)"
+                                    Command="{Binding DeleteCategoryCommand}"
+                                    CommandParameter="{Binding SelectedCategory}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ================================ UNITS ================================ -->
+            <TabItem Header="وحدات القياس" FontSize="15" FontWeight="SemiBold">
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}" Padding="0">
+                        <DataGrid ItemsSource="{Binding Units}"
+                                  SelectedItem="{Binding SelectedUnit}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="اسم الوحدة" Binding="{Binding Name}" Width="*" MinWidth="150" />
+                                <DataGridTextColumn Header="الرمز" Binding="{Binding Symbol}" Width="110" />
+                                <DataGridCheckBoxColumn Header="تقبل كسور" Binding="{Binding AllowFractions}" Width="100" />
+                                <DataGridTextColumn Header="عدد المنتجات" Binding="{Binding ProductCount}" Width="120" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource CardBorderStyle}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding UnitFormTitle}" Style="{StaticResource CardTitleTextStyle}" />
+
+                            <TextBlock Text="اسم الوحدة *" Style="{StaticResource FieldLabelTextStyle}" />
+                            <TextBox Text="{Binding UnitName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                            <TextBlock Text="الرمز (كجم، لتر …)" Style="{StaticResource FieldLabelTextStyle}" />
+                            <TextBox Text="{Binding UnitSymbol, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+                            <CheckBox Content="تقبل كسور (الوزن / السوائل)"
+                                      IsChecked="{Binding UnitAllowFractions}"
+                                      FlowDirection="RightToLeft" Margin="0,0,0,14" />
+
+                            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}"
+                                       TextWrapping="Wrap" Margin="0,0,0,8"
+                                       Visibility="{Binding ErrorMessage, Converter={StaticResource EmptyStringToVisibility}}" />
+
+                            <Button Content="💾 حفظ الوحدة" Command="{Binding SaveUnitCommand}" Margin="0,0,0,8" />
+                            <Button Content="➕ وحدة جديدة" Style="{StaticResource GhostButtonStyle}"
+                                    Command="{Binding NewUnitCommand}" Margin="0,0,0,8" />
+                            <Button Content="🗑 حذف الوحدة المحددة"
+                                    Style="{StaticResource DangerButtonStyle}"
+                                    IsEnabled="{Binding CanEdit}"
+                                    ToolTip="لا يمكن حذف وحدة يستخدمها منتجات"
+                                    Command="{Binding DeleteUnitCommand}"
+                                    CommandParameter="{Binding SelectedUnit}" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>
