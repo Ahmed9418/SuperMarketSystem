@@ -226,3 +226,46 @@ dotnet test  tests/Supermarket.Admin.Tests/Supermarket.Admin.Tests.csproj   # ي
   النظام الافتراضي، ويجب تأكيدها بصريًا في البند 14.
 * **الطابعة:** يُختبر الاتصال بالطابعة الحرارية فعليًا في البند 18؛ في حال عدم وجود طابعة يعرض البرنامج
   معاينة الإيصال على الشاشة.
+
+---
+
+## 9. أخطاء المترجم الفعلية (بناء ويندوز) — وسببها وإصلاحها
+
+هذه الأخطاء ظهرت عند أول بناء فعلي على ويندوز. **كلها مُصلَحة**.
+
+| # | الخطأ كما ظهر | السبب الحقيقي | الإصلاح |
+|---|---|---|---|
+| 1 | `Metadata file '...\Supermarket.Wpf\obj\Debug\net8.0-windows\ref\Supermarket.Wpf.dll' could not be found` | `SupermarketSystem.sln` كان تالفًا: سطور تهيئة `Supermarket.Wpf` مكتوبة **بعد** `EndGlobalSection` الخاص بـ `ProjectConfigurationPlatforms`، أي خارج أي قسم — فلم يُبنَ المشروع ضمن الحل | نُقلت الأسطر الأربعة داخل `ProjectConfigurationPlatforms` |
+| 2 | `Metadata file '...\Supermarket.Admin\obj\Debug\net8.0-windows\ref\Supermarket.Admin.dll' could not be found` | نتيجة متابعة للخطأ 1 (المشروع المرجعي لم يُنتج مخرجاته) | يُصلَح تلقائيًا بعد إصلاح الحل |
+| 3 | `The tag 'MoneyConverter' does not exist in XML namespace 'clr-namespace:Supermarket.Wpf.Converters;assembly=Supermarket.Wpf'` | نفس السبب: `Supermarket.Wpf.dll` غير موجود وقت تحليل XAML، فلا يستطيع المحلّل تحميل الأنواع. الكلاس `MoneyConverter` **موجود** في `src/Supermarket.Wpf/Converters/AppConverters.cs` | يُصلَح تلقائيًا بعد إصلاح الحل |
+| 4 | `Cannot find the Style Property 'TextAlignment' on the type 'System.Windows.Controls.PasswordBox'. Line 91` | `PasswordBox` **لا يملك** خاصية `TextAlignment` (بخلاف `TextBox`) | حُذف الـ Setter من `LatinPasswordStyle` |
+| 5 | نفس الخطأ السابق — `Line 120` | نفس السبب في `PosLatinPasswordStyle` | حُذف الـ Setter |
+| 6 | `The property 'Converter' does not exist in XML namespace '…/xaml/presentation'. Line 71 Position 44` | `Converter="..."` مكتوب كخاصية مستقلة بجوار `Text="{Binding …}"` في `StockAdjustmentWindow.xaml` | دُمج داخل تعبير الـ Binding |
+
+### لماذا ظهر خطأ «Metadata file» مع أن المشروع موجود؟
+
+ملفات `obj/…/ref/*.dll` هي مخرجات مرحلة **Reference Assembly** التي تُنتج قبل التجميع. عند فشل بناء
+`Supermarket.Wpf` لا تُنتج هذه الملفات، فيفشل كل مشروع يشير إليه. الرسالة نفسها مضلّلة لأنها تتحدث عن ملف
+«مفقود» بينما السبب في ملف الحل.
+
+### بعد إصلاح الحل — نظّف المخرجات القديمة
+
+أخطاء «Metadata file» تُخزَّن مؤقتًا في MSBuild، فنفّذ مرة واحدة:
+
+```powershell
+git clean -xdf src\Supermarket.Wpf src\Supermarket.Admin
+dotnet build SupermarketSystem.sln -c Debug
+```
+
+### تحذيرات الحزم (ليست أخطاء بناء)
+
+```
+Package 'OpenTK 3.3.1' was restored using '.NETFramework,...' instead of the project target framework 'net8.0-windows7.0'
+Package 'OpenTK.GLWpfControl 3.3.0' ...
+Package 'SkiaSharp.Views.WPF 3.116.1' ...
+```
+
+مصدرها `LiveChartsCore.SkiaSharpView.WPF 2.0.0-rc5.4`، الذي يعتمد على إصدارات قديمة من OpenTK/SkiaSharp
+لا تُعلن دعم `net8.0-windows`. هذه **تحذيرات NU1701 فقط**: NuGet يعود تلقائيًا إلى أصول .NET Framework
+والربط ينجح والتطبيق يعمل. لإخفائها يمكن إضافة `<NoWarn>$(NoWarn);NU1701</NoWarn>` إلى
+`Directory.Build.props` — لم تُضف عن قصد حتى لا تُخفى تحذيرات مستقبلية مشابهة.

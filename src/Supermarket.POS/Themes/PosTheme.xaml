@@ -114,10 +114,10 @@
         <Setter Property="BorderThickness" Value="1" />
     </Style>
 
-    <!-- Latin password / PIN: typed left to right so the dots and digits do not jump. -->
+    <!-- Latin password / PIN: typed left to right so the dots and digits do not jump.
+         PasswordBox has NO TextAlignment property; the alignment follows FlowDirection. -->
     <Style x:Key="PosLatinPasswordStyle" TargetType="{x:Type PasswordBox}" BasedOn="{StaticResource {x:Type PasswordBox}}">
         <Setter Property="FlowDirection" Value="LeftToRight" />
-        <Setter Property="TextAlignment" Value="Left" />
         <Setter Property="FontFamily" Value="{StaticResource PosMonoFontFamily}" />
     </Style>
 
