@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -389,7 +389,9 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
         {
             new Axis
             {
-                Labeler = value => new DateTime((long)value).ToString("dd/MM"),
+                Labeler = value => value >= 0 && value <= DateTime.MaxValue.Ticks
+                    ? new DateTime((long)value).ToString("dd/MM")
+                    : string.Empty,
                 UnitWidth = TimeSpan.FromDays(1).Ticks,
                 MinStep = TimeSpan.FromDays(1).Ticks,
                 LabelsRotation = -35,

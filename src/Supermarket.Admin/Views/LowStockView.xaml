@@ -1,13 +1,11 @@
 ﻿<UserControl x:Class="Supermarket.Admin.Views.LowStockView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
         <!-- Summary card -->
         <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,12">
             <Grid>
@@ -16,23 +14,19 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="نواقص المخزون" Style="{StaticResource PageTitleTextStyle}" />
                     <TextBlock Text="{Binding SummaryText}" Foreground="{StaticResource TextSecondaryBrush}"
                                TextWrapping="Wrap" Margin="0,6,0,0" />
                 </StackPanel>
-
                 <StackPanel Grid.Column="1" Margin="24,0" VerticalAlignment="Center">
                     <TextBlock Text="التكلفة التقديرية للتوريد" Style="{StaticResource FieldLabelTextStyle}" />
                     <TextBlock Text="{Binding EstimatedReorderCost, Converter={StaticResource EgpCurrency}}"
                                FontSize="20" FontWeight="Bold" Foreground="{StaticResource DangerBrush}" />
                 </StackPanel>
-
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="📥 توريد الصنف المحدد"
                             Height="38" Padding="14,0" Margin="0,0,8,0"
-                            Style="{StaticResource PrimaryButtonStyle}"
                             Command="{Binding ReceiveStockCommand}" />
                     <Button Content="🔄 تحديث القائمة"
                             Height="38" Padding="14,0"
@@ -41,7 +35,6 @@
                 </StackPanel>
             </Grid>
         </Border>
-
         <!-- Grid -->
         <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="0">
             <DataGrid ItemsSource="{Binding Products}"
@@ -79,7 +72,6 @@
                             <DataTemplate>
                                 <Button Content="📥 توريد"
                                         Height="28" Padding="10,0" FontSize="12"
-                                        Style="{StaticResource PrimaryButtonStyle}"
                                         Command="{Binding DataContext.ReceiveStockCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}" />
                             </DataTemplate>
