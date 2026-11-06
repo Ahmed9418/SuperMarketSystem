@@ -275,6 +275,38 @@ public sealed partial class ProductsViewModel : ObservableObject
         }
     }
 
+    /// <summary>Deletes the selected product after confirmation.</summary>
+    [RelayCommand]
+    private async Task DeleteProductAsync(ProductDto? product)
+    {
+        product ??= SelectedProduct;
+        if (product is null)
+        {
+            _dialogs.ShowWarning("من فضلك اختر منتجاً أولاً", "تنبيه");
+            return;
+        }
+
+        var message = product.StockQuantity > 0
+            ? $"المنتج ({product.Name}) لديه رصيد حالي بالمخزن ({product.StockQuantity:N2}).\nهل أنت متأكد من حذف هذا المنتج؟"
+            : $"هل أنت متأكد من حذف المنتج ({product.Name})؟";
+
+        if (!_dialogs.Confirm(message, "تأكيد الحذف"))
+        {
+            return;
+        }
+
+        try
+        {
+            await _productService.DeleteAsync(product.Id);
+            await LoadPageAsync();
+            SelectedProduct = null;
+        }
+        catch (Exception ex)
+        {
+            _dialogs.ShowError($"تعذر حذف المنتج:\n{ex.Message}", "خطأ");
+        }
+    }
+
     /// <summary>Opens the manual stock correction dialog for the selected product.</summary>
     [RelayCommand]
     private async Task AdjustStockAsync(ProductDto? product)

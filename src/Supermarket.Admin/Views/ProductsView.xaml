@@ -5,7 +5,6 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -51,33 +50,16 @@
                             Style="{StaticResource SecondaryButtonStyle}"
                             Command="{Binding OpenEditorCommand}"
                             CommandParameter="{Binding SelectedProduct}" />
-                    <Button Content="⏻ تفعيل / إيقاف" Width="140" Margin="8,0,0,0"
-                            Style="{StaticResource WarningButtonStyle}"
-                            Command="{Binding ToggleActiveCommand}"
-                            CommandParameter="{Binding SelectedProduct}" />
-                    <Button Content="⚖ تسوية مخزون" Width="140" Margin="8,0,0,0"
-                            Style="{StaticResource GhostButtonStyle}"
-                            Command="{Binding AdjustStockCommand}"
+                    <Button Content="🗑 حذف المنتج" Width="140" Margin="8,0,0,0"
+                            Style="{StaticResource DangerButtonStyle}"
+                            Command="{Binding DeleteProductCommand}"
                             CommandParameter="{Binding SelectedProduct}" />
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ======================= Sorting quick filters ====================== -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBlock Text="ترتيب حسب:" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,8,0" />
-            <Button Content="الاسم" Style="{StaticResource GhostButtonStyle}" Height="28" Margin="0,0,6,0"
-                    Command="{Binding SortCommand}" CommandParameter="Name" />
-            <Button Content="الكمية" Style="{StaticResource GhostButtonStyle}" Height="28" Margin="0,0,6,0"
-                    Command="{Binding SortCommand}" CommandParameter="StockQuantity" />
-            <Button Content="سعر البيع" Style="{StaticResource GhostButtonStyle}" Height="28" Margin="0,0,6,0"
-                    Command="{Binding SortCommand}" CommandParameter="SellingPrice" />
-            <Button Content="تاريخ الإضافة" Style="{StaticResource GhostButtonStyle}" Height="28"
-                    Command="{Binding SortCommand}" CommandParameter="CreatedAtUtc" />
-        </StackPanel>
-
         <!-- ============================== Grid =============================== -->
-        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="0">
+        <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="0">
             <DataGrid ItemsSource="{Binding Products}"
                       SelectedItem="{Binding SelectedProduct}">
                 <DataGrid.RowStyle>
@@ -99,24 +81,28 @@
                 </DataGrid.RowStyle>
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="اسم المنتج" Binding="{Binding Name}" Width="*" MinWidth="200" />
+                    <DataGridTextColumn Header="اسم المنتج" Binding="{Binding Name}" SortMemberPath="Name" Width="*" MinWidth="200" />
                     <!-- Latin / numeric columns keep their own reading order. -->
-                    <DataGridTextColumn Header="البار كود" Width="140">
+                    <DataGridTextColumn Header="البار كود" SortMemberPath="Barcode" Width="140">
                         <DataGridTextColumn.Binding>
                             <Binding Path="Barcode" Converter="{StaticResource RtlIsolation}" />
                         </DataGridTextColumn.Binding>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="القسم" Binding="{Binding CategoryName}" Width="120" />
-                    <DataGridTextColumn Header="الوحدة" Binding="{Binding UnitName}" Width="80" />
+                    <DataGridTextColumn Header="القسم" Binding="{Binding CategoryName}" SortMemberPath="CategoryName" Width="120" />
+                    <DataGridTextColumn Header="الوحدة" Binding="{Binding UnitName}" SortMemberPath="UnitName" Width="80" />
                     <DataGridTextColumn Header="سعر الشراء" Width="120"
+                                        SortMemberPath="CostPrice"
                                         Binding="{Binding CostPrice, Converter={StaticResource EgpCurrency}}" />
                     <DataGridTextColumn Header="سعر البيع" Width="120"
+                                        SortMemberPath="SellingPrice"
                                         Binding="{Binding SellingPrice, Converter={StaticResource EgpCurrency}}" />
                     <DataGridTextColumn Header="الكمية" Width="90"
+                                        SortMemberPath="StockQuantity"
                                         Binding="{Binding StockQuantity, StringFormat={}{0:N2}}" />
                     <DataGridTextColumn Header="حد الطلب" Width="90"
+                                        SortMemberPath="MinimumStockLevel"
                                         Binding="{Binding MinimumStockLevel, StringFormat={}{0:N2}}" />
-                    <DataGridTemplateColumn Header="الحالة" Width="110">
+                    <DataGridTemplateColumn Header="الحالة" SortMemberPath="IsActive" Width="110">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock FontWeight="SemiBold">
@@ -149,7 +135,7 @@
         </Border>
 
         <!-- ============================= Footer ============================== -->
-        <Grid Grid.Row="3" Margin="0,10,0,0">
+        <Grid Grid.Row="2" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

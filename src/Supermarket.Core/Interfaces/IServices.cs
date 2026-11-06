@@ -33,6 +33,9 @@ public interface IProductService
     /// <summary>Soft delete / restore.</summary>
     Task SetActiveAsync(int id, bool isActive, string? userName = null, CancellationToken cancellationToken = default);
 
+    /// <summary>Soft-deletes a product so it is hidden from catalog while preserving historical records.</summary>
+    Task DeleteAsync(int id, CancellationToken cancellationToken = default);
+
     /// <summary>Creates the next unused internal barcode ("20" + 11 digits).</summary>
     Task<string> GenerateBarcodeAsync(CancellationToken cancellationToken = default);
 

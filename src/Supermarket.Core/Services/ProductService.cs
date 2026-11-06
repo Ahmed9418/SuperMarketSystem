@@ -238,6 +238,18 @@ public sealed class ProductService : IProductService
     }
 
     /// <inheritdoc />
+    /// <inheritdoc />
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == id, cancellationToken)
+            ?? throw new InvalidOperationException("المنتج المطلوب غير موجود أو تم حذفه بالفعل.");
+
+        _db.Products.Remove(product);
+        await _db.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Product {ProductId} ({ProductName}) deleted", product.Id, product.Name);
+    }
+
+    /// <inheritdoc />
     public async Task SetActiveAsync(int id, bool isActive, string? userName = null, CancellationToken cancellationToken = default)
     {
         var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == id, cancellationToken)

@@ -169,5 +169,29 @@ public sealed class ProductViewModelsTests : IDisposable
         await Task.Delay(600);
         Assert.All(vm.Products, p => Assert.True(p.StockQuantity <= p.MinimumStockLevel));
     }
+
+    [Fact]
+    public async Task ProductsViewModel_DeleteProduct_RemovesProduct()
+    {
+        _fixture.SignInAsAdmin();
+        var vm = new ProductsViewModel(
+            _fixture.ProductService,
+            _fixture.CatalogService,
+            _fixture.Dialogs,
+            _fixture.ServiceProvider);
+
+        await Task.Delay(100);
+
+        var productToDelete = vm.Products.First();
+        var deletedId = productToDelete.Id;
+        _fixture.Dialogs.ConfirmResult = true;
+
+        await vm.DeleteProductCommand.ExecuteAsync(productToDelete);
+
+        Assert.DoesNotContain(vm.Products, p => p.Id == deletedId);
+        var inDb = await _fixture.Database.Context.Products.IgnoreQueryFilters().SingleOrDefaultAsync(p => p.Id == deletedId);
+        Assert.NotNull(inDb);
+        Assert.True(inDb!.IsDeleted);
+    }
 }
 
