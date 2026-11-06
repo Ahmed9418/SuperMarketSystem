@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Supermarket.Admin.ViewModels;
 
@@ -19,7 +19,12 @@ public partial class StockAdjustmentWindow : Window
     }
 
     /// <summary>Optionally preselects the product the user right-clicked.</summary>
-    public Task InitializeAsync(int? productId) => _viewModel.InitializeAsync(productId);
+    public Task InitializeAsync(
+        int? productId,
+        Supermarket.Core.Common.StockMovementType? defaultMovementType = null,
+        decimal? defaultQuantity = null,
+        string? defaultReason = null) =>
+        _viewModel.InitializeAsync(productId, defaultMovementType, defaultQuantity, defaultReason);
 
     private void OnSaved(object? sender, EventArgs e)
     {

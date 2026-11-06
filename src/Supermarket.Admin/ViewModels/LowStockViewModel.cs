@@ -1,7 +1,9 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Supermarket.Admin.Services;
+using Supermarket.Admin.Views;
+using Supermarket.Core.Common;
 using Supermarket.Core.DTOs;
 using Supermarket.Core.Interfaces;
 
@@ -15,16 +17,24 @@ public sealed partial class LowStockViewModel : ObservableObject
 {
     private readonly IProductService _productService;
     private readonly IDialogService _dialogs;
+    private readonly IServiceProvider _services;
 
-    public LowStockViewModel(IProductService productService, IDialogService dialogs)
+    public LowStockViewModel(
+        IProductService productService,
+        IDialogService dialogs,
+        IServiceProvider services)
     {
         _productService = productService;
         _dialogs = dialogs;
+        _services = services;
 
         _ = LoadAsync();
     }
 
     public ObservableCollection<ProductDto> Products { get; } = new();
+
+    [ObservableProperty]
+    private ProductDto? selectedProduct;
 
     [ObservableProperty]
     private bool isBusy;
@@ -65,6 +75,36 @@ public sealed partial class LowStockViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    /// <summary>
+    /// Opens the stock receiving dialog pre-filled with the suggested reorder quantity and purchase movement type.
+    /// </summary>
+    [RelayCommand]
+    private async Task ReceiveStockAsync(ProductDto? product)
+    {
+        product ??= SelectedProduct;
+        if (product is null)
+        {
+            _dialogs.ShowWarning("من فضلك اختر منتجاً من القائمة أولاً", "تنبيه");
+            return;
+        }
+
+        var dialog = new StockAdjustmentWindow(_services);
+        var suggestedQty = product.ReorderQuantity > 0
+            ? product.ReorderQuantity
+            : Math.Max(1, product.MinimumStockLevel - product.StockQuantity);
+
+        await dialog.InitializeAsync(
+            product.Id,
+            StockMovementType.Purchase,
+            suggestedQty,
+            "توريد نواقص مخزون");
+
+        if (dialog.ShowDialog() == true)
+        {
+            await LoadAsync();
         }
     }
 }

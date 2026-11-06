@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Supermarket.Admin.Services;
 using Supermarket.Core.Common;
@@ -97,10 +97,41 @@ public sealed partial class StockAdjustmentViewModel : ObservableObject
     /// <summary>Raised after a successful adjustment.</summary>
     public event EventHandler? Saved;
 
-    public async Task InitializeAsync(int? productId)
+    public async Task InitializeAsync(
+        int? productId,
+        StockMovementType? defaultMovementType = null,
+        decimal? defaultQuantity = null,
+        string? defaultReason = null)
     {
         SelectedDirection = Directions[0];
-        SelectedMovementType = MovementTypes[0];
+
+        if (defaultMovementType.HasValue)
+        {
+            var match = MovementTypes.FirstOrDefault(m => m.MovementType == defaultMovementType.Value);
+            if (match is not null)
+            {
+                SelectedMovementType = match;
+                SelectedDirection = Directions.FirstOrDefault(d => d.Direction == match.Direction) ?? Directions[0];
+            }
+            else
+            {
+                SelectedMovementType = MovementTypes[0];
+            }
+        }
+        else
+        {
+            SelectedMovementType = MovementTypes[0];
+        }
+
+        if (defaultQuantity.HasValue && defaultQuantity.Value > 0)
+        {
+            Quantity = defaultQuantity.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(defaultReason))
+        {
+            Reason = defaultReason;
+        }
 
         if (productId is > 0)
         {
