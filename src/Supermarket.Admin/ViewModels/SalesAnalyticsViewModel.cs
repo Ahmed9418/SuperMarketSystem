@@ -398,9 +398,19 @@ public sealed partial class SalesAnalyticsViewModel : ObservableObject
         {
             new Axis
             {
-                Labeler = value => value >= 0 && value <= DateTime.MaxValue.Ticks
-                    ? new DateTime((long)value).ToString("dd/MM")
-                    : string.Empty,
+                Labeler = value =>
+                {
+                    if (double.IsNaN(value) || double.IsInfinity(value) || value < 0 || value > DateTime.MaxValue.Ticks)
+                        return string.Empty;
+                    try
+                    {
+                        return new DateTime((long)value).ToString("dd/MM");
+                    }
+                    catch
+                    {
+                        return string.Empty;
+                    }
+                },
                 UnitWidth = TimeSpan.FromDays(1).Ticks,
                 MinStep = TimeSpan.FromDays(1).Ticks,
                 LabelsRotation = -35,

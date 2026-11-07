@@ -48,7 +48,7 @@
 
                             <!-- Store Logo -->
                             <TextBlock Text="شعار المتجر (اللوجو)" Style="{StaticResource SettingsLabelStyle}" Margin="0,14,0,4" />
-                            <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrush}"
+                            <Border Background="{StaticResource CanvasBrush}" BorderBrush="{StaticResource BorderBrush}"
                                     BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,6">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
