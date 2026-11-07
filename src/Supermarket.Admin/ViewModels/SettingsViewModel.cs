@@ -82,7 +82,17 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string statusMessage = string.Empty;
 
+    [ObservableProperty]
+    private bool isPreviewVisible;
+
     public bool HasLogo => !string.IsNullOrWhiteSpace(LogoPath) && File.Exists(LogoPath);
+
+    public bool Is80mm => string.Equals(InvoicePaperSize, "80mm", StringComparison.OrdinalIgnoreCase);
+    public bool IsA4 => string.Equals(InvoicePaperSize, "A4", StringComparison.OrdinalIgnoreCase);
+    public bool IsA5 => string.Equals(InvoicePaperSize, "A5", StringComparison.OrdinalIgnoreCase);
+
+    public string PreviewToggleText => IsPreviewVisible ? "👁️ إخفاء شكل الفاتورة" : "👁️ عرض شكل الفاتورة";
+    public string CurrentDatePreview => DateTime.Now.ToString("yyyy/MM/dd HH:mm");
 
     public bool CanEdit => _session.Can(AppPermissions.SettingsEdit) || _session.IsAdministrator;
 
@@ -129,6 +139,14 @@ public sealed partial class SettingsViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(SelectedPaperSizeOption));
         OnPropertyChanged(nameof(IsThermalSelected));
+        OnPropertyChanged(nameof(Is80mm));
+        OnPropertyChanged(nameof(IsA4));
+        OnPropertyChanged(nameof(IsA5));
+    }
+
+    partial void OnIsPreviewVisibleChanged(bool value)
+    {
+        OnPropertyChanged(nameof(PreviewToggleText));
     }
 
     partial void OnLogoPathChanged(string? value) => OnPropertyChanged(nameof(HasLogo));
@@ -178,6 +196,26 @@ public sealed partial class SettingsViewModel : ObservableObject
     {
         LogoPath = null;
         StatusMessage = "تمت إزالة الشعار. اضغط حفظ الإعدادات لتثبيت التغيير.";
+    }
+
+    [RelayCommand]
+    private void TogglePreview()
+    {
+        IsPreviewVisible = !IsPreviewVisible;
+        StatusMessage = IsPreviewVisible
+            ? "يتم الآن عرض شكل وتصميم الفاتورة بالأسفل."
+            : "تم إخفاء معاينة الفاتورة.";
+    }
+
+    [RelayCommand]
+    private void OpenPreviewWindow()
+    {
+        var win = new Views.InvoicePreviewWindow(this);
+        if (System.Windows.Application.Current?.MainWindow is { } main && main != win)
+        {
+            win.Owner = main;
+        }
+        win.ShowDialog();
     }
 
     [RelayCommand]
