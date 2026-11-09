@@ -345,7 +345,7 @@ public sealed class ReceiptAndShiftClosingTests : IDisposable
         var shiftService = CreateShiftService();
         await shiftService.GetOrOpenAsync(new ShiftOpenRequestDto { UserId = 2, OpeningCash = 75m, TerminalId = "POS-07" });
 
-        var shifts = await shiftService.GetShiftsAsync(DateTime.Today.AddDays(-1), DateTime.Today, "POS-07");
+        var shifts = await shiftService.GetShiftsAsync(_clock.UtcNow.Date.AddDays(-1), _clock.UtcNow.Date, "POS-07");
 
         Assert.NotEmpty(shifts);
         Assert.All(shifts, s => Assert.Equal("POS-07", s.TerminalId));
