@@ -1,4 +1,5 @@
 <Window x:Class="Supermarket.POS.Views.SalesWindow"
+        x:Name="ThisWindow"
         Style="{StaticResource AppWindowStyle}"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -11,6 +12,7 @@
     <Window.Resources>
         <!-- Product tile of the touch grid -->
         <Style x:Key="ProductTileStyle" TargetType="{x:Type Button}">
+            <Setter Property="Focusable" Value="False" />
             <Setter Property="Margin" Value="4" />
             <Setter Property="Background" Value="{StaticResource PosPanelBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PosTextBrush}" />
@@ -369,10 +371,10 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Button Style="{StaticResource ProductTileStyle}"
-                                            Command="{Binding DataContext.AddProductCommand,
-                                                              RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            Click="OnProductTileClick"
+                                            Command="{Binding DataContext.AddProductCommand, ElementName=ThisWindow}"
                                             CommandParameter="{Binding}">
-                                        <StackPanel>
+                                        <StackPanel IsHitTestVisible="False">
                                             <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
                                                        TextWrapping="Wrap" MaxHeight="38" />
                                             <TextBlock FontSize="13" Margin="0,6,0,0"

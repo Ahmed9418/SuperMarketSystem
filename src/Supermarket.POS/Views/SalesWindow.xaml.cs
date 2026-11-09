@@ -41,59 +41,14 @@ public partial class SalesWindow : Window
         DataContext = viewModel;
 
         Loaded += OnLoaded;
-
-        // Any click that does not land on an interactive control returns the keyboard to the scanner.
-        PreviewMouseDown += OnPreviewMouseDownAnywhere;
     }
 
-    private void OnPreviewMouseDownAnywhere(object sender, MouseButtonEventArgs e)
+    private void OnProductTileClick(object sender, RoutedEventArgs e)
     {
-        if (e.OriginalSource is DependencyObject source && IsInteractiveControl(source))
+        if (sender is FrameworkElement { DataContext: ProductDto product })
         {
-            return;
+            _viewModel.AddProductCommand.Execute(product);
         }
-
-        Dispatcher.BeginInvoke(RefocusBarcode, DispatcherPriority.Background);
-    }
-
-    private static bool IsInteractiveControl(DependencyObject element)
-    {
-        DependencyObject? current = element;
-        while (current is not null and not Window)
-        {
-            if (current is ButtonBase
-                or TextBox
-                or PasswordBox
-                or ComboBox
-                or ComboBoxItem
-                or DataGrid
-                or DataGridRow
-                or DataGridCell
-                or ScrollBar
-                or Thumb)
-            {
-                return true;
-            }
-
-            current = GetParent(current);
-        }
-
-        return false;
-    }
-
-    private static DependencyObject? GetParent(DependencyObject element)
-    {
-        if (element is FrameworkContentElement contentElement)
-        {
-            return contentElement.Parent;
-        }
-
-        if (element is Visual or System.Windows.Media.Media3D.Visual3D)
-        {
-            return VisualTreeHelper.GetParent(element);
-        }
-
-        return LogicalTreeHelper.GetParent(element);
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -374,7 +329,6 @@ public partial class SalesWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         Loaded -= OnLoaded;
-        PreviewMouseDown -= OnPreviewMouseDownAnywhere;
         _viewModel.ErrorSound = null;
 
         // Detach every subscription: the view model outlives the window when a sale is completed.
