@@ -196,9 +196,13 @@ public sealed class SalesViewModelTests : IDisposable
     }
 
     [Fact]
-    public async Task Checkout_WhenShiftOpenAndCartValid_RaisesCheckoutRequested()
+    public async Task Checkout_WhenShiftOpenAndCartValid_CompletesSaleDirectlyAndClearsCart()
     {
         var vm = _fixture.CreateSalesViewModel();
+        var cashier = new UserDto { Id = 2, FullName = "محمود السيد", Role = UserRole.Cashier };
+        await vm.InitializeAsync(cashier, "POS-01");
+        vm.CurrentUserId = cashier.Id;
+
         var shift = await _fixture.ShiftService.GetOrOpenAsync(new ShiftOpenRequestDto
         {
             UserId = 2,
@@ -210,14 +214,50 @@ public sealed class SalesViewModelTests : IDisposable
         var product = await _fixture.ProductService.GetByIdAsync(1);
         vm.AddProductCommand.Execute(product);
 
-        CheckoutRequestEventArgs? checkoutArgs = null;
-        vm.CheckoutRequested += (_, args) => checkoutArgs = args;
+        SaleResultDto? completedSale = null;
+        vm.SaleCompleted += (_, sale) => completedSale = sale;
 
-        vm.CheckoutCommand.Execute(null);
+        // Cash sale with change calculation (item is 27.00, paid 50.00 => change 23.00)
+        vm.PaidAmount = 50m;
+        await vm.CheckoutCommand.ExecuteAsync(null);
 
-        Assert.NotNull(checkoutArgs);
-        Assert.Single(checkoutArgs.Lines);
-        Assert.Equal(vm.Totals.TotalAmount, checkoutArgs.Totals.TotalAmount);
+        Assert.NotNull(completedSale);
+        Assert.Equal(27m, completedSale.TotalAmount);
+        Assert.Equal(23m, completedSale.ChangeAmount);
+        Assert.Empty(vm.Cart);
+        Assert.Contains("باقي العميل", vm.LastChangeMessage);
+    }
+
+    [Fact]
+    public async Task Checkout_WithWalletPayment_CompletesSaleForExactAmount()
+    {
+        var vm = _fixture.CreateSalesViewModel();
+        var cashier = new UserDto { Id = 2, FullName = "محمود السيد", Role = UserRole.Cashier };
+        await vm.InitializeAsync(cashier, "POS-01");
+        vm.CurrentUserId = cashier.Id;
+
+        var shift = await _fixture.ShiftService.GetOrOpenAsync(new ShiftOpenRequestDto
+        {
+            UserId = 2,
+            OpeningCash = 100m,
+            TerminalId = "POS-01"
+        });
+        vm.ApplyOpenedShift(shift);
+
+        var product = await _fixture.ProductService.GetByIdAsync(1);
+        vm.AddProductCommand.Execute(product);
+
+        vm.SelectPaymentMethodCommand.Execute("Wallet");
+        Assert.True(vm.IsWallet);
+
+        SaleResultDto? completedSale = null;
+        vm.SaleCompleted += (_, sale) => completedSale = sale;
+
+        await vm.CheckoutCommand.ExecuteAsync(null);
+
+        Assert.NotNull(completedSale);
+        Assert.Equal(PaymentMethod.Wallet, completedSale.PaymentMethod);
+        Assert.Empty(vm.Cart);
     }
 
     public void Dispose() => _fixture.Dispose();

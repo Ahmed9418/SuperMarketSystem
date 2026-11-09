@@ -114,6 +114,37 @@ public sealed partial class SalesViewModel : ObservableObject
     [ObservableProperty]
     private int heldCartCount;
 
+    [ObservableProperty]
+    private PaymentMethod selectedPaymentMethod = PaymentMethod.Cash;
+
+    [ObservableProperty]
+    private decimal paidAmount;
+
+    [ObservableProperty]
+    private string lastChangeMessage = string.Empty;
+
+    public bool IsCash => SelectedPaymentMethod == PaymentMethod.Cash;
+
+    public bool IsWallet => SelectedPaymentMethod == PaymentMethod.Wallet;
+
+    public bool IsCard => SelectedPaymentMethod == PaymentMethod.Card;
+
+    public decimal ChangeAmount => SelectedPaymentMethod == PaymentMethod.Cash
+        ? Math.Max(0m, Math.Round(PaidAmount - Totals.TotalAmount, 2))
+        : 0m;
+
+    public string ChangeText => $"{ChangeAmount:N2} {DomainConstants.CurrencySymbol}";
+
+    public decimal RemainingAmount => SelectedPaymentMethod == PaymentMethod.Cash
+        ? Math.Max(0m, Math.Round(Totals.TotalAmount - PaidAmount, 2))
+        : 0m;
+
+    public string RemainingText => $"{RemainingAmount:N2} {DomainConstants.CurrencySymbol}";
+
+    public bool HasChange => ChangeAmount > 0m;
+
+    public bool IsFullyPaid => SelectedPaymentMethod != PaymentMethod.Cash || PaidAmount >= Totals.TotalAmount;
+
     public bool IsCartEmpty => Cart.Count == 0;
 
     public string GrandTotalText => $"{Totals.TotalAmount:N2} {DomainConstants.CurrencySymbol}";
@@ -319,7 +350,10 @@ public sealed partial class SalesViewModel : ObservableObject
         Cart.Clear();
         InvoiceDiscount = 0m;
         InvoiceDiscountPercentage = 0m;
+        LastChangeMessage = string.Empty;
+        PaidAmount = 0m;
         RecalculateTotals();
+        NotifyPaymentProperties();
         StatusMessage = "تم تفريغ السلة";
     }
 
@@ -774,12 +808,11 @@ public sealed partial class SalesViewModel : ObservableObject
 
     // --------------------------------------------------------------- Checkout
     /// <summary>
-    /// F9 – opens the payment dialog. The window performs the commit through
-    /// <see cref="ISalesService"/> (see <see cref="CheckoutRequested"/>) so the dialog can be owned by
-    /// the window and print the receipt afterwards.
+    /// F9 – commits the sale directly using the selected payment method (Cash with change, Wallet, or Card).
+    /// Modal payment window is eliminated.
     /// </summary>
     [RelayCommand]
-    private void Checkout()
+    private async Task CheckoutAsync()
     {
         if (IsBusy)
         {
@@ -788,7 +821,7 @@ public sealed partial class SalesViewModel : ObservableObject
 
         if (Cart.Count == 0)
         {
-            _dialogs.ShowWarning("السلة فارغة", "تنبيه");
+            _dialogs.ShowWarning("السلة فارغة، أضف منتجات قبل إتمام الدفع", "تنبيه");
             RequestBarcodeFocus();
             return;
         }
@@ -808,21 +841,82 @@ public sealed partial class SalesViewModel : ObservableObject
             return;
         }
 
-        CheckoutRequested?.Invoke(this, new CheckoutRequestEventArgs(
-            Cart.Select(l => l.ToDto()).ToList(),
-            Totals));
+        if (SelectedPaymentMethod == PaymentMethod.Cash && PaidAmount < Totals.TotalAmount)
+        {
+            _dialogs.ShowWarning(
+                $"المبلغ المدفوع ({PaidAmount:N2}) أقل من الإجمالي المستحق ({Totals.TotalAmount:N2})",
+                "تنبيه");
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var effectivePaid = SelectedPaymentMethod == PaymentMethod.Cash ? PaidAmount : Totals.TotalAmount;
+            var request = new SaleRequestDto
+            {
+                UserId = CurrentUserId,
+                ShiftId = CurrentShiftId,
+                CustomerId = null,
+                CustomerName = null,
+                Lines = Cart.Select(l => l.ToDto()).ToList(),
+                InvoiceDiscount = Totals.InvoiceDiscount,
+                InvoiceDiscountPercentage = Totals.InvoiceDiscountPercentage,
+                PaidAmount = effectivePaid,
+                PaymentMethod = SelectedPaymentMethod
+            };
+
+            var result = await _salesService.CompleteSaleAsync(request);
+
+            if (result.ChangeAmount > 0m)
+            {
+                LastChangeMessage = $"باقي العميل: {result.ChangeAmount:N2} {DomainConstants.CurrencySymbol}";
+            }
+            else
+            {
+                LastChangeMessage = "تم الدفع بالكامل - لا يوجد باقي";
+            }
+
+            await HandleSaleCompletedAsync(result);
+        }
+        catch (Exception ex)
+        {
+            _dialogs.ShowError($"تعذر إتمام عملية البيع:\n{ex.Message}", "خطأ");
+        }
+        finally
+        {
+            IsBusy = false;
+            RequestBarcodeFocus();
+        }
     }
 
-    /// <summary>Raised by F9; the window opens the payment dialog.</summary>
-    public event EventHandler<CheckoutRequestEventArgs>? CheckoutRequested;
+    [RelayCommand]
+    private void SetExactPaid()
+    {
+        PaidAmount = Totals.TotalAmount;
+        NotifyPaymentProperties();
+        RequestBarcodeFocus();
+    }
 
-    /// <summary>Called by the window once the payment dialog committed a sale.</summary>
+    [RelayCommand]
+    private void SelectPaymentMethod(string method)
+    {
+        if (Enum.TryParse<PaymentMethod>(method, true, out var parsed))
+        {
+            SelectedPaymentMethod = parsed;
+        }
+        RequestBarcodeFocus();
+    }
+
+    /// <summary>Called once the sale is committed.</summary>
     public async Task HandleSaleCompletedAsync(SaleResultDto result)
     {
         Cart.Clear();
         InvoiceDiscount = 0m;
         InvoiceDiscountPercentage = 0m;
         RecalculateTotals();
+        PaidAmount = 0m;
+        NotifyPaymentProperties();
 
         _currentShift = await _shiftService.GetOpenShiftAsync(CurrentUserId, TerminalId);
         ApplyShift(_currentShift);
@@ -899,12 +993,46 @@ public sealed partial class SalesViewModel : ObservableObject
             LineCount = lines.Count
         };
 
+        if (SelectedPaymentMethod != PaymentMethod.Cash || PaidAmount <= 0m || PaidAmount < total)
+        {
+            PaidAmount = total;
+        }
+
         OnPropertyChanged(nameof(GrandTotalText));
         OnPropertyChanged(nameof(NetTotalText));
         OnPropertyChanged(nameof(TaxTotalText));
         OnPropertyChanged(nameof(DiscountTotalText));
         OnPropertyChanged(nameof(SubTotalText));
         OnPropertyChanged(nameof(ItemCountText));
+        NotifyPaymentProperties();
+    }
+
+    partial void OnPaidAmountChanged(decimal value)
+    {
+        NotifyPaymentProperties();
+    }
+
+    partial void OnSelectedPaymentMethodChanged(PaymentMethod value)
+    {
+        if (value != PaymentMethod.Cash || PaidAmount < Totals.TotalAmount)
+        {
+            PaidAmount = Totals.TotalAmount;
+        }
+
+        NotifyPaymentProperties();
+    }
+
+    public void NotifyPaymentProperties()
+    {
+        OnPropertyChanged(nameof(ChangeAmount));
+        OnPropertyChanged(nameof(ChangeText));
+        OnPropertyChanged(nameof(RemainingAmount));
+        OnPropertyChanged(nameof(RemainingText));
+        OnPropertyChanged(nameof(HasChange));
+        OnPropertyChanged(nameof(IsFullyPaid));
+        OnPropertyChanged(nameof(IsCash));
+        OnPropertyChanged(nameof(IsWallet));
+        OnPropertyChanged(nameof(IsCard));
     }
 
     partial void OnInvoiceDiscountChanged(decimal value)
@@ -933,18 +1061,4 @@ public sealed partial class SalesViewModel : ObservableObject
     public Action? ErrorSound { get; set; }
 
     private void PlayError() => ErrorSound?.Invoke();
-}
-
-/// <summary>Payload carried by <see cref="SalesViewModel.CheckoutRequested"/>.</summary>
-public sealed class CheckoutRequestEventArgs : EventArgs
-{
-    public CheckoutRequestEventArgs(IReadOnlyList<CartLineDto> lines, CartPricingDto totals)
-    {
-        Lines = lines;
-        Totals = totals;
-    }
-
-    public IReadOnlyList<CartLineDto> Lines { get; }
-
-    public CartPricingDto Totals { get; }
 }
