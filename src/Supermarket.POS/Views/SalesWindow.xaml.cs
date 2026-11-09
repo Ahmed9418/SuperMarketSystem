@@ -1,5 +1,8 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Supermarket.Core.DTOs;
 using Supermarket.Core.Interfaces;
@@ -39,12 +42,59 @@ public partial class SalesWindow : Window
 
         Loaded += OnLoaded;
 
-        // Any click that does not land on an input control returns the keyboard to the scanner.
+        // Any click that does not land on an interactive control returns the keyboard to the scanner.
         PreviewMouseDown += OnPreviewMouseDownAnywhere;
     }
 
-    private void OnPreviewMouseDownAnywhere(object sender, MouseButtonEventArgs e) =>
-        Dispatcher.BeginInvoke(RefocusBarcode, DispatcherPriority.Input);
+    private void OnPreviewMouseDownAnywhere(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject source && IsInteractiveControl(source))
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(RefocusBarcode, DispatcherPriority.Background);
+    }
+
+    private static bool IsInteractiveControl(DependencyObject element)
+    {
+        DependencyObject? current = element;
+        while (current is not null and not Window)
+        {
+            if (current is ButtonBase
+                or TextBox
+                or PasswordBox
+                or ComboBox
+                or ComboBoxItem
+                or DataGrid
+                or DataGridRow
+                or DataGridCell
+                or ScrollBar
+                or Thumb)
+            {
+                return true;
+            }
+
+            current = GetParent(current);
+        }
+
+        return false;
+    }
+
+    private static DependencyObject? GetParent(DependencyObject element)
+    {
+        if (element is FrameworkContentElement contentElement)
+        {
+            return contentElement.Parent;
+        }
+
+        if (element is Visual or System.Windows.Media.Media3D.Visual3D)
+        {
+            return VisualTreeHelper.GetParent(element);
+        }
+
+        return LogicalTreeHelper.GetParent(element);
+    }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
