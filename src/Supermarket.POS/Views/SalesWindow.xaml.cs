@@ -34,7 +34,7 @@ public partial class SalesWindow : Window
         _viewModel.ErrorSound = () => SystemSounds.Beep();
         _viewModel.FocusBarcodeRequested += OnFocusBarcodeRequested;
         _viewModel.ShiftOpenRequested += OnShiftOpenRequested;
-        _viewModel.CheckoutRequested += OnCheckoutRequested;
+        _viewModel.SaleCompleted += OnSaleCompleted;
         _viewModel.ShiftCloseRequested += OnShiftCloseRequested;
         _viewModel.HeldCartsRequested += OnHeldCartsRequested;
 
@@ -208,52 +208,46 @@ public partial class SalesWindow : Window
         }
     }
 
-    /// <summary>F9: opens the payment dialog, then commits and prints the receipt.</summary>
-    private async void OnCheckoutRequested(object? sender, CheckoutRequestEventArgs request)
+    private async void OnPaidBoxKeyDown(object sender, KeyEventArgs e)
     {
-        var paymentViewModel = ActivatorUtilities.CreateInstance<PaymentViewModel>(App.Services);
-        paymentViewModel.UserId = _cashier.Id;
-        paymentViewModel.ShiftId = _viewModel.CurrentShiftId;
-
-        var dialog = new PaymentWindow(paymentViewModel) { Owner = this };
-        await dialog.InitializeAsync(request.Lines, request.Totals);
-
-        if (dialog.ShowDialog() != true || dialog.Result is null)
+        if (e.Key == Key.Enter)
         {
-            RefocusBarcode();
-            return;
+            e.Handled = true;
+            await _viewModel.CheckoutCommand.ExecuteAsync(null);
         }
+    }
 
-        var sale = dialog.Result;
-        await _viewModel.HandleSaleCompletedAsync(sale);
+    private async void OnSaleCompleted(object? sender, SaleResultDto sale)
+    {
         await PrintReceiptAsync(sale);
         RefocusBarcode();
     }
 
-    /// <summary>Formats and prints the customer receipt; falls back to an on-screen preview.</summary>
+    /// <summary>Formats and prints the customer receipt without blocking cashier.</summary>
     private async Task PrintReceiptAsync(SaleResultDto sale)
     {
-        var formatter = ServiceProviderServiceExtensions.GetRequiredService<IReceiptFormatter>(App.Services);
-        var settingsService = ServiceProviderServiceExtensions.GetRequiredService<IStoreSettingsService>(App.Services);
-        var printer = ServiceProviderServiceExtensions.GetRequiredService<IReceiptPrinterService>(App.Services);
-
-        var settings = await settingsService.GetAsync();
-        var receiptText = formatter.BuildSaleReceipt(sale, settings);
-
-        var print = await printer.PrintAsync(receiptText);
-
-        if (print.Succeeded)
+        try
         {
-            // Inform the cashier of the change due without blocking the next scan.
-            _viewModel.StatusMessage =
-                $"تمت الفاتورة {sale.InvoiceNumber} - المتبقي {sale.ChangeAmount:N2} {Core.Common.DomainConstants.CurrencySymbol} - " +
-                print.Message;
-            return;
-        }
+            var formatter = ServiceProviderServiceExtensions.GetRequiredService<IReceiptFormatter>(App.Services);
+            var settingsService = ServiceProviderServiceExtensions.GetRequiredService<IStoreSettingsService>(App.Services);
+            var printer = ServiceProviderServiceExtensions.GetRequiredService<IReceiptPrinterService>(App.Services);
 
-        // No printer: show the receipt so the cashier can read it / print it later.
-        // Long text: show the receipt body only, the printer message would drown it out.
-        ArabicMessageBox.Show(receiptText, "الإيصال (معاينة)");
+            var settings = await settingsService.GetAsync();
+            var receiptText = formatter.BuildSaleReceipt(sale, settings);
+
+            var print = await printer.PrintAsync(receiptText);
+
+            if (print.Succeeded)
+            {
+                _viewModel.StatusMessage =
+                    $"تمت الفاتورة {sale.InvoiceNumber} - المتبقي {sale.ChangeAmount:N2} {Core.Common.DomainConstants.CurrencySymbol} - " +
+                    print.Message;
+            }
+        }
+        catch
+        {
+            // Background print failure never blocks cashier
+        }
     }
 
     /// <summary>Prints a small test slip so the cashier can verify paper width and Arabic shaping.</summary>
@@ -335,7 +329,7 @@ public partial class SalesWindow : Window
         _viewModel.FocusBarcodeRequested -= OnFocusBarcodeRequested;
         _viewModel.HeldCartsRequested -= OnHeldCartsRequested;
         _viewModel.ShiftOpenRequested -= OnShiftOpenRequested;
-        _viewModel.CheckoutRequested -= OnCheckoutRequested;
+        _viewModel.SaleCompleted -= OnSaleCompleted;
         _viewModel.ShiftCloseRequested -= OnShiftCloseRequested;
         base.OnClosed(e);
     }

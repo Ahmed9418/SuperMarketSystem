@@ -16,8 +16,9 @@
             <Setter Property="Margin" Value="4" />
             <Setter Property="Background" Value="{StaticResource PosPanelBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PosTextBrush}" />
-            <Setter Property="Height" Value="86" />
-            <Setter Property="Padding" Value="8" />
+            <Setter Property="MinHeight" Value="96" />
+            <Setter Property="Height" Value="Auto" />
+            <Setter Property="Padding" Value="8,6" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="BorderBrush" Value="{StaticResource PosBorderBrush}" />
             <Setter Property="BorderThickness" Value="1" />
@@ -43,6 +44,32 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!-- Cell padding so text in CartGrid is never clipped or touching borders -->
+        <Style TargetType="{x:Type DataGridCell}">
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Foreground" Value="White" />
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
@@ -102,22 +129,22 @@
         <!-- ============================== Body =============================== -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <!-- Totals + function keys (first column = right-hand side in RTL) -->
-                <ColumnDefinition Width="360" />
+                <!-- Totals + inline payment + function keys (first column = right-hand side in RTL) -->
+                <ColumnDefinition Width="380" />
                 <!-- Cart in the middle -->
                 <ColumnDefinition Width="*" />
                 <!-- Touch tiles on the left -->
                 <ColumnDefinition Width="360" />
             </Grid.ColumnDefinitions>
 
-            <!-- ============================ TOTALS ============================ -->
+            <!-- ============================ TOTALS & INLINE PAYMENT ============================ -->
             <Grid Grid.Column="0" Margin="0,0,8,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" Background="{StaticResource PosPanelBrush}" CornerRadius="10" Padding="18">
+                <Border Grid.Row="0" Background="{StaticResource PosPanelBrush}" CornerRadius="10" Padding="14">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -125,66 +152,203 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
-                        <Grid Grid.Row="0">
+                        <!-- Totals Breakdown -->
+                        <Grid Grid.Row="0" Margin="0,0,0,6">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="المجموع الفرعي" Style="{StaticResource TotalLabelStyle}" />
-                            <TextBlock Grid.Column="1" Text="{Binding SubTotalText}" Style="{StaticResource TotalValueStyle}" />
-                        </Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                        <Grid Grid.Row="1">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="الضريبة (قيمة مضافة)" Style="{StaticResource TotalLabelStyle}" />
-                            <TextBlock Grid.Column="1" Text="{Binding TaxTotalText}" Style="{StaticResource TotalValueStyle}"
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="المجموع الفرعي" Style="{StaticResource TotalLabelStyle}" FontSize="13" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SubTotalText}" Style="{StaticResource TotalValueStyle}" FontSize="13" />
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="الضريبة" Style="{StaticResource TotalLabelStyle}" FontSize="13" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TaxTotalText}" Style="{StaticResource TotalValueStyle}" FontSize="13"
                                        Foreground="{StaticResource PosMutedTextBrush}" />
-                        </Grid>
 
-                        <Grid Grid.Row="2">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="الخصم" Style="{StaticResource TotalLabelStyle}" />
-                            <TextBlock Grid.Column="1" Text="{Binding DiscountTotalText}" Style="{StaticResource TotalValueStyle}"
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="الخصم" Style="{StaticResource TotalLabelStyle}" FontSize="13" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DiscountTotalText}" Style="{StaticResource TotalValueStyle}" FontSize="13"
                                        Foreground="{StaticResource PosWarningBrush}" />
                         </Grid>
 
-                        <Grid Grid.Row="3">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="الصافي (بدون ضريبة)" Style="{StaticResource TotalLabelStyle}" />
-                            <TextBlock Grid.Column="1" Text="{Binding NetTotalText}" Style="{StaticResource TotalValueStyle}"
-                                       Foreground="{StaticResource PosMutedTextBrush}" />
-                        </Grid>
+                        <Rectangle Grid.Row="1" Height="1" Fill="{StaticResource PosBorderBrush}" Margin="0,2,0,6" />
 
-                        <Rectangle Grid.Row="4" Height="1" Fill="{StaticResource PosBorderBrush}" Margin="0,12" />
-
-                        <StackPanel Grid.Row="5" VerticalAlignment="Center">
-                            <TextBlock Text="الإجمالي المستحق" FontSize="16"
+                        <!-- Grand Total Display -->
+                        <StackPanel Grid.Row="2" HorizontalAlignment="Center" Margin="0,0,0,6">
+                            <TextBlock Text="الإجمالي المستحق" FontSize="14"
                                        Foreground="{StaticResource PosMutedTextBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock Text="{Binding GrandTotalText}"
-                                       FontSize="46" FontWeight="Bold"
+                                       FontSize="36" FontWeight="Bold"
                                        Foreground="{StaticResource PosAccentBrush}"
-                                       HorizontalAlignment="Center" Margin="0,6,0,0" />
-                            <TextBlock Text="{Binding ItemCountText}" FontSize="13"
+                                       HorizontalAlignment="Center" Margin="0,2,0,0" />
+                            <TextBlock Text="{Binding ItemCountText}" FontSize="12"
                                        Foreground="{StaticResource PosMutedTextBrush}"
-                                       HorizontalAlignment="Center" Margin="0,10,0,0" />
+                                       HorizontalAlignment="Center" Margin="0,2,0,0" />
                         </StackPanel>
 
-                        <Button Grid.Row="6" Content="💵  الدفع (F9)"
-                                Height="76" FontSize="24" Margin="0,16,0,0"
+                        <Rectangle Grid.Row="3" Height="1" Fill="{StaticResource PosBorderBrush}" Margin="0,2,0,6" />
+
+                        <!-- Payment Method Toggle (Cash, Wallet, Card - strictly NO credit/آجل) -->
+                        <StackPanel Grid.Row="4" Margin="0,0,0,6">
+                            <TextBlock Text="طريقة الدفع" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{StaticResource PosMutedTextBrush}" Margin="0,0,0,4" />
+
+                            <UniformGrid Columns="3">
+                                <Button Content="💵 نقدي" Height="38" Margin="0,0,3,0" FontSize="13"
+                                        Command="{Binding SelectPaymentMethodCommand}" CommandParameter="Cash">
+                                    <Button.Style>
+                                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+                                            <Setter Property="Background" Value="{StaticResource PosPanelBrush}" />
+                                            <Setter Property="Foreground" Value="{StaticResource PosTextBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource PosBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCash}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource PosAccentBrush}" />
+                                                    <Setter Property="Foreground" Value="White" />
+                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                    <Setter Property="BorderThickness" Value="0" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+
+                                <Button Content="📱 محفظة" Height="38" Margin="2,0,2,0" FontSize="13"
+                                        Command="{Binding SelectPaymentMethodCommand}" CommandParameter="Wallet">
+                                    <Button.Style>
+                                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+                                            <Setter Property="Background" Value="{StaticResource PosPanelBrush}" />
+                                            <Setter Property="Foreground" Value="{StaticResource PosTextBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource PosBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsWallet}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource PosAccentMidBrush}" />
+                                                    <Setter Property="Foreground" Value="White" />
+                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                    <Setter Property="BorderThickness" Value="0" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+
+                                <Button Content="💳 بطاقة" Height="38" Margin="3,0,0,0" FontSize="13"
+                                        Command="{Binding SelectPaymentMethodCommand}" CommandParameter="Card">
+                                    <Button.Style>
+                                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+                                            <Setter Property="Background" Value="{StaticResource PosPanelBrush}" />
+                                            <Setter Property="Foreground" Value="{StaticResource PosTextBrush}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource PosBorderBrush}" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsCard}" Value="True">
+                                                    <Setter Property="Background" Value="{StaticResource PosAccentDarkBrush}" />
+                                                    <Setter Property="Foreground" Value="White" />
+                                                    <Setter Property="FontWeight" Value="Bold" />
+                                                    <Setter Property="BorderThickness" Value="0" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </UniformGrid>
+                        </StackPanel>
+
+                        <!-- CASH SECTION: Paid box + Change Banner -->
+                        <StackPanel Grid.Row="5" Visibility="{Binding IsCash, Converter={StaticResource BoolToVisibility}}"
+                                    Margin="0,0,0,6">
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="المبلغ المدفوع" FontSize="13"
+                                           Foreground="{StaticResource PosMutedTextBrush}" VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Content="المبلغ بالضبط" Height="28" FontSize="12"
+                                        Padding="10,0" Style="{StaticResource PosLightButtonStyle}"
+                                        Command="{Binding SetExactPaidCommand}" />
+                            </Grid>
+
+                            <TextBox x:Name="PaidAmountBox"
+                                     Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged, StringFormat={}{0:N2}}"
+                                     Height="44" FontSize="22" FontWeight="Bold"
+                                     Style="{StaticResource PosLatinInputStyle}"
+                                     KeyDown="OnPaidBoxKeyDown"
+                                     Margin="0,0,0,6"
+                                     ToolTip="أدخل المبلغ المستلم واضغط Enter للإتمام" />
+
+                            <!-- Real-time change / remaining banner -->
+                            <Border Background="{StaticResource PosSuccessLightBrush}"
+                                    BorderBrush="{StaticResource PosSuccessBrush}"
+                                    BorderThickness="1.5" CornerRadius="8" Padding="10,6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="المتبقي (الباقي):"
+                                               FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{StaticResource PosSuccessDarkBrush}"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding ChangeText}"
+                                               FontSize="20" FontWeight="Bold"
+                                               Foreground="{StaticResource PosSuccessBrush}"
+                                               VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- WALLET / CARD INFO BADGE -->
+                        <StackPanel Grid.Row="6">
+                            <Border Visibility="{Binding IsWallet, Converter={StaticResource BoolToVisibility}}"
+                                    Background="{StaticResource PosAccentLightBrush}"
+                                    BorderBrush="{StaticResource PosAccentMidBrush}"
+                                    BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
+                                <TextBlock Text="📱 الدفع بمحفظة إلكترونية (فودافون كاش / إنستاباي) بمبلغ الفاتورة بالكامل"
+                                           FontSize="12" FontWeight="SemiBold"
+                                           Foreground="{StaticResource PosAccentDarkBrush}"
+                                           TextWrapping="Wrap" TextAlignment="Center" />
+                            </Border>
+
+                            <Border Visibility="{Binding IsCard, Converter={StaticResource BoolToVisibility}}"
+                                    Background="{StaticResource PosAccentLightBrush}"
+                                    BorderBrush="{StaticResource PosAccentDarkBrush}"
+                                    BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
+                                <TextBlock Text="💳 الدفع بالبطاقة البنكية (فيزا / ماستركارد / ميزة) بمبلغ الفاتورة بالكامل"
+                                           FontSize="12" FontWeight="SemiBold"
+                                           Foreground="{StaticResource PosAccentDarkBrush}"
+                                           TextWrapping="Wrap" TextAlignment="Center" />
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Previous sale change reminder -->
+                        <Border Grid.Row="7" Visibility="{Binding LastChangeMessage, Converter={StaticResource EmptyStringToVisibility}}"
+                                Background="{StaticResource PosWarningLightBrush}"
+                                BorderBrush="{StaticResource PosWarningBrush}"
+                                BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="0,0,0,6">
+                            <TextBlock Text="{Binding LastChangeMessage}" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{StaticResource PosWarningDarkBrush}"
+                                       TextAlignment="Center" TextWrapping="Wrap" />
+                        </Border>
+
+                        <!-- Direct Checkout Button -->
+                        <Button Grid.Row="8" Content="💵  إتمام البيع والطباعة (F9)"
+                                Height="56" FontSize="19"
+                                Background="{StaticResource PosSuccessBrush}"
                                 Command="{Binding CheckoutCommand}" />
                     </Grid>
                 </Border>
@@ -280,7 +444,16 @@
 
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="اسم المنتج" Binding="{Binding ProductName}"
-                                                    Width="*" MinWidth="200" />
+                                                    Width="2*" MinWidth="240">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                            <Setter Property="Padding" Value="8,0" />
+                                            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                                            <Setter Property="ToolTip" Value="{Binding ProductName}" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                                 <DataGridTextColumn Header="البار كود" Width="130"
                                                     Binding="{Binding Barcode, Converter={StaticResource RtlIsolation}}" />
                                 <DataGridTextColumn Header="الكمية" Width="90"
@@ -305,20 +478,28 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <WrapPanel Grid.Column="0">
-                                    <Button Content="➖" Width="64" Height="44" Margin="0,0,6,0"
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <Button Content="➕" Width="48" Height="44" Margin="0,0,6,0"
+                                            Padding="0" FontSize="18"
                                             Style="{StaticResource PosLightButtonStyle}"
-                                            Command="{Binding DecreaseQuantityCommand}" />
-                                    <Button Content="➕" Width="64" Height="44" Margin="0,0,6,0"
+                                            Command="{Binding IncreaseQuantityCommand}"
+                                            ToolTip="زيادة الكمية (+)" />
+                                    <Button Content="➖" Width="48" Height="44" Margin="0,0,8,0"
+                                            Padding="0" FontSize="18"
                                             Style="{StaticResource PosLightButtonStyle}"
-                                            Command="{Binding IncreaseQuantityCommand}" />
-                                    <Button Content="🗑 حذف السطر" Width="130" Height="44"
+                                            Command="{Binding DecreaseQuantityCommand}"
+                                            ToolTip="تقليل الكمية (-)" />
+                                    <Button Content="🗑 حذف السطر" Height="44" Margin="0,0,8,0"
+                                            Padding="16,0" FontSize="15"
                                             Background="{StaticResource PosDangerBrush}"
-                                            Command="{Binding RemoveLineCommand}" />
-                                    <Button Content="تفريغ السلة" Width="130" Height="44" Margin="6,0,0,0"
+                                            Command="{Binding RemoveLineCommand}"
+                                            ToolTip="حذف الصنف المحدد (F8)" />
+                                    <Button Content="🧹 تفريغ السلة" Height="44"
+                                            Padding="16,0" FontSize="15"
                                             Background="{StaticResource PosWarningBrush}"
-                                            Command="{Binding ClearCartCommand}" />
-                                </WrapPanel>
+                                            Command="{Binding ClearCartCommand}"
+                                            ToolTip="تفريغ السلة بالكامل (Esc)" />
+                                </StackPanel>
 
                                 <TextBlock Grid.Column="1" Text="{Binding StatusMessage}"
                                            FontSize="14" Foreground="{StaticResource PosTextBrush}"
@@ -375,14 +556,14 @@
                                             Command="{Binding DataContext.AddProductCommand, ElementName=ThisWindow}"
                                             CommandParameter="{Binding}">
                                         <StackPanel IsHitTestVisible="False">
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
-                                                       TextWrapping="Wrap" MaxHeight="38" />
-                                            <TextBlock FontSize="13" Margin="0,6,0,0"
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
+                                                       TextWrapping="Wrap" MaxHeight="38" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock FontSize="13" FontWeight="Bold" Margin="0,4,0,0"
                                                        Foreground="{StaticResource PosAccentBrush}">
                                                 <Run Text="{Binding SellingPrice, Mode=OneWay, StringFormat={}{0:N2}}" />
                                                 <Run Text="ج.م" />
                                             </TextBlock>
-                                            <TextBlock FontSize="11" Foreground="{StaticResource PosMutedTextBrush}">
+                                            <TextBlock FontSize="11" Foreground="{StaticResource PosMutedTextBrush}" Margin="0,2,0,0">
                                                 <Run Text="المخزون:" />
                                                 <Run Text="{Binding StockQuantity, Mode=OneWay, StringFormat={}{0:N2}}" />
                                             </TextBlock>
