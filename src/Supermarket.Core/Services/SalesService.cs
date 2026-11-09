@@ -100,157 +100,161 @@ public sealed class SalesService : ISalesService
             : 0m;
 
         // ------------------------------------------------------------ Transaction
-        await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
-        try
+        var strategy = _db.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            var shift = await ResolveShiftAsync(request, cancellationToken);
-
-            // A completed invoice must always belong to an open shift, otherwise the drawer
-            // reconciliation of the Z-report would silently miss the transaction.
-            if (shift is null)
+            await using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+            try
             {
-                throw new InvalidOperationException(
-                    "لا توجد ورديّة مفتوحة لهذا الكاشير. يجب فتح ورديّة قبل إتمام أي عملية بيع.");
-            }
+                var shift = await ResolveShiftAsync(request, cancellationToken);
 
-            var invoiceNumber = await _numberSequence.NextInvoiceNumberAsync(cancellationToken);
-
-            var invoice = new Invoice
-            {
-                InvoiceNumber = invoiceNumber,
-                InvoiceDateUtc = _clock.UtcNow,
-                CustomerId = request.CustomerId,
-                UserId = request.UserId,
-                ShiftId = shift.Id,
-                Status = InvoiceStatus.Completed,
-                SubTotal = totals.SubTotal,
-                DiscountAmount = totals.TotalDiscount,
-                DiscountPercentage = totals.InvoiceDiscountPercentage,
-                TaxAmount = totals.TaxAmount,
-                TotalAmount = totals.TotalAmount,
-                PaidAmount = request.PaymentMethod == PaymentMethod.Credit ? 0m : request.PaidAmount,
-                ChangeAmount = changeAmount,
-                RemainingAmount = remainingAmount,
-                PaymentMethod = request.PaymentMethod,
-                Notes = request.Notes,
-                IsWalkIn = request.CustomerId is null,
-                CreatedBy = cashier.UserName
-            };
-
-            foreach (var line in pricedLines)
-            {
-                invoice.Items.Add(new InvoiceItem
+                // A completed invoice must always belong to an open shift, otherwise the drawer
+                // reconciliation of the Z-report would silently miss the transaction.
+                if (shift is null)
                 {
-                    ProductId = line.ProductId,
-                    ProductName = line.ProductName,
-                    Barcode = line.Barcode,
-                    Quantity = line.Quantity,
-                    UnitPrice = line.UnitPrice,
-                    UnitCost = line.UnitCost,
-                    DiscountAmount = line.DiscountAmount,
-                    VatRate = line.VatRate,
-                    TaxAmount = line.TaxAmount,
-                    LineTotal = line.LineTotal,
-                    LineTotalWithTax = line.LineTotalWithTax
-                });
-            }
-
-            var settledAmount = request.PaymentMethod == PaymentMethod.Credit ? 0m : Math.Min(request.PaidAmount, totals.TotalAmount);
-            if (settledAmount > 0m)
-            {
-                invoice.Payments.Add(new Payment
-                {
-                    Method = request.PaymentMethod,
-                    Amount = settledAmount,
-                    PaidAtUtc = _clock.UtcNow
-                });
-            }
-
-            _db.Invoices.Add(invoice);
-            await _db.SaveChangesAsync(cancellationToken);
-
-            // Stock is deducted through the ledger so the movement history stays complete.
-            foreach (var line in pricedLines)
-            {
-                await _stockService.AdjustStockAsync(
-                    line.ProductId,
-                    -Math.Abs(line.Quantity),
-                    StockMovementType.Sale,
-                    referenceNumber: invoiceNumber,
-                    reason: "بيع من نقطة البيع",
-                    performedBy: cashier.UserName,
-                    invoiceId: invoice.Id,
-                    shiftId: shift.Id,
-                    cancellationToken: cancellationToken);
-            }
-
-            if (request.PaymentMethod == PaymentMethod.Credit && request.CustomerId is int customerId)
-            {
-                var customer = await _db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
-                if (customer is not null)
-                {
-                    customer.Balance += remainingAmount;
-                }
-            }
-
-            if (shift is not null)
-            {
-                shift.TotalSales += totals.TotalAmount;
-                shift.TotalDiscount += totals.TotalDiscount;
-                shift.TotalTax += totals.TaxAmount;
-                shift.InvoiceCount += 1;
-
-                switch (request.PaymentMethod)
-                {
-                    case PaymentMethod.Cash:
-                        shift.TotalCashSales += totals.TotalAmount;
-                        break;
-                    case PaymentMethod.Card:
-                        shift.TotalCardSales += totals.TotalAmount;
-                        break;
-                    case PaymentMethod.Wallet:
-                        shift.TotalWalletSales += totals.TotalAmount;
-                        break;
-                    case PaymentMethod.Credit:
-                        shift.TotalCreditSales += totals.TotalAmount;
-                        break;
+                    throw new InvalidOperationException(
+                        "لا توجد ورديّة مفتوحة لهذا الكاشير. يجب فتح ورديّة قبل إتمام أي عملية بيع.");
                 }
 
-                // Expected cash = opening float + cash taken during the shift.
-                shift.ExpectedCash = shift.OpeningCash + shift.TotalCashSales - shift.TotalRefunds;
+                var invoiceNumber = await _numberSequence.NextInvoiceNumberAsync(cancellationToken);
+
+                var invoice = new Invoice
+                {
+                    InvoiceNumber = invoiceNumber,
+                    InvoiceDateUtc = _clock.UtcNow,
+                    CustomerId = request.CustomerId,
+                    UserId = request.UserId,
+                    ShiftId = shift.Id,
+                    Status = InvoiceStatus.Completed,
+                    SubTotal = totals.SubTotal,
+                    DiscountAmount = totals.TotalDiscount,
+                    DiscountPercentage = totals.InvoiceDiscountPercentage,
+                    TaxAmount = totals.TaxAmount,
+                    TotalAmount = totals.TotalAmount,
+                    PaidAmount = request.PaymentMethod == PaymentMethod.Credit ? 0m : request.PaidAmount,
+                    ChangeAmount = changeAmount,
+                    RemainingAmount = remainingAmount,
+                    PaymentMethod = request.PaymentMethod,
+                    Notes = request.Notes,
+                    IsWalkIn = request.CustomerId is null,
+                    CreatedBy = cashier.UserName
+                };
+
+                foreach (var line in pricedLines)
+                {
+                    invoice.Items.Add(new InvoiceItem
+                    {
+                        ProductId = line.ProductId,
+                        ProductName = line.ProductName,
+                        Barcode = line.Barcode,
+                        Quantity = line.Quantity,
+                        UnitPrice = line.UnitPrice,
+                        UnitCost = line.UnitCost,
+                        DiscountAmount = line.DiscountAmount,
+                        VatRate = line.VatRate,
+                        TaxAmount = line.TaxAmount,
+                        LineTotal = line.LineTotal,
+                        LineTotalWithTax = line.LineTotalWithTax
+                    });
+                }
+
+                var settledAmount = request.PaymentMethod == PaymentMethod.Credit ? 0m : Math.Min(request.PaidAmount, totals.TotalAmount);
+                if (settledAmount > 0m)
+                {
+                    invoice.Payments.Add(new Payment
+                    {
+                        Method = request.PaymentMethod,
+                        Amount = settledAmount,
+                        PaidAtUtc = _clock.UtcNow
+                    });
+                }
+
+                _db.Invoices.Add(invoice);
+                await _db.SaveChangesAsync(cancellationToken);
+
+                // Stock is deducted through the ledger so the movement history stays complete.
+                foreach (var line in pricedLines)
+                {
+                    await _stockService.AdjustStockAsync(
+                        line.ProductId,
+                        -Math.Abs(line.Quantity),
+                        StockMovementType.Sale,
+                        referenceNumber: invoiceNumber,
+                        reason: "بيع من نقطة البيع",
+                        performedBy: cashier.UserName,
+                        invoiceId: invoice.Id,
+                        shiftId: shift.Id,
+                        cancellationToken: cancellationToken);
+                }
+
+                if (request.PaymentMethod == PaymentMethod.Credit && request.CustomerId is int customerId)
+                {
+                    var customer = await _db.Customers.FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
+                    if (customer is not null)
+                    {
+                        customer.Balance += remainingAmount;
+                    }
+                }
+
+                if (shift is not null)
+                {
+                    shift.TotalSales += totals.TotalAmount;
+                    shift.TotalDiscount += totals.TotalDiscount;
+                    shift.TotalTax += totals.TaxAmount;
+                    shift.InvoiceCount += 1;
+
+                    switch (request.PaymentMethod)
+                    {
+                        case PaymentMethod.Cash:
+                            shift.TotalCashSales += totals.TotalAmount;
+                            break;
+                        case PaymentMethod.Card:
+                            shift.TotalCardSales += totals.TotalAmount;
+                            break;
+                        case PaymentMethod.Wallet:
+                            shift.TotalWalletSales += totals.TotalAmount;
+                            break;
+                        case PaymentMethod.Credit:
+                            shift.TotalCreditSales += totals.TotalAmount;
+                            break;
+                    }
+
+                    // Expected cash = opening float + cash taken during the shift.
+                    shift.ExpectedCash = shift.OpeningCash + shift.TotalCashSales - shift.TotalRefunds;
+                }
+
+                await _db.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                _logger.LogInformation(
+                    "Sale {InvoiceNumber} committed: {Total} EGP, {LineCount} lines, payment {Method}, cashier {Cashier}",
+                    invoiceNumber, totals.TotalAmount, pricedLines.Count, request.PaymentMethod, cashier.UserName);
+
+                return new SaleResultDto
+                {
+                    InvoiceId = invoice.Id,
+                    InvoiceNumber = invoiceNumber,
+                    InvoiceDateUtc = invoice.InvoiceDateUtc,
+                    SubTotal = totals.SubTotal,
+                    DiscountAmount = totals.TotalDiscount,
+                    TaxAmount = totals.TaxAmount,
+                    TotalAmount = totals.TotalAmount,
+                    PaidAmount = invoice.PaidAmount,
+                    ChangeAmount = changeAmount,
+                    RemainingAmount = remainingAmount,
+                    PaymentMethod = request.PaymentMethod,
+                    Lines = pricedLines,
+                    CashierName = cashier.FullName,
+                    CustomerName = request.CustomerName,
+                    ShiftNumber = shift?.ShiftNumber
+                };
             }
-
-            await _db.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-
-            _logger.LogInformation(
-                "Sale {InvoiceNumber} committed: {Total} EGP, {LineCount} lines, payment {Method}, cashier {Cashier}",
-                invoiceNumber, totals.TotalAmount, pricedLines.Count, request.PaymentMethod, cashier.UserName);
-
-            return new SaleResultDto
+            catch
             {
-                InvoiceId = invoice.Id,
-                InvoiceNumber = invoiceNumber,
-                InvoiceDateUtc = invoice.InvoiceDateUtc,
-                SubTotal = totals.SubTotal,
-                DiscountAmount = totals.TotalDiscount,
-                TaxAmount = totals.TaxAmount,
-                TotalAmount = totals.TotalAmount,
-                PaidAmount = invoice.PaidAmount,
-                ChangeAmount = changeAmount,
-                RemainingAmount = remainingAmount,
-                PaymentMethod = request.PaymentMethod,
-                Lines = pricedLines,
-                CashierName = cashier.FullName,
-                CustomerName = request.CustomerName,
-                ShiftNumber = shift?.ShiftNumber
-            };
-        }
-        catch
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            throw;
-        }
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        });
     }
 
     /// <inheritdoc />
