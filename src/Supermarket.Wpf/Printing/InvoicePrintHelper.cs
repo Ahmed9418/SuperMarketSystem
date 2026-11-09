@@ -190,7 +190,8 @@ public static class InvoicePrintHelper
                     Source = bi,
                     MaxWidth = isA5 ? 100 : 130,
                     MaxHeight = isA5 ? 70 : 90,
-                    Stretch = Stretch.Uniform
+                    Stretch = Stretch.Uniform,
+                    FlowDirection = FlowDirection.LeftToRight
                 };
                 logoCell.Blocks.Add(new BlockUIContainer(img));
             }

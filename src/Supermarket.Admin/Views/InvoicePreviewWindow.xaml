@@ -56,8 +56,9 @@
                             <!-- Top Perforation -->
                             <Border Height="3" Background="#E2E8F0" Margin="-16,-16,-16,12" />
 
-                            <!-- Store Logo -->
-                            <Image Source="{Binding LogoPath}" MaxWidth="140" MaxHeight="65" Stretch="Uniform"
+                            <!-- Store Logo (FlowDirection="LeftToRight" prevents horizontal reflection) -->
+                            <Image Source="{Binding LogoPath}" FlowDirection="LeftToRight"
+                                   MaxWidth="140" MaxHeight="65" Stretch="Uniform"
                                    HorizontalAlignment="Center" Margin="0,0,0,8">
                                 <Image.Style>
                                     <Style TargetType="{x:Type Image}">
@@ -152,7 +153,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="50" />
-                                    <ColumnDefinition Width="70" />
+                                    <ColumnDefinition Width="80" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="الصنف" FontSize="11" FontWeight="Bold" />
                                 <TextBlock Grid.Column="1" Text="الكمية" FontSize="11" FontWeight="Bold" TextAlignment="Center" />
@@ -162,68 +163,82 @@
                                        Foreground="#94A3B8" TextAlignment="Center" Margin="0,0,0,4" />
 
                             <!-- Sample Items -->
-                            <Grid Margin="0,2,0,2">
+                            <Grid Margin="0,3,0,3">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="50" />
-                                    <ColumnDefinition Width="70" />
+                                    <ColumnDefinition Width="80" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="أرز مصري فاخر 1 كجم" FontSize="11" FontWeight="Medium" />
-                                    <TextBlock Text="2 × 33.00 ج.م" FontSize="9" Foreground="#64748B" />
+                                    <TextBlock Text="2 × 33.00 ج.م" FontSize="9" Foreground="#64748B" Margin="0,1,0,0" />
                                 </StackPanel>
                                 <TextBlock Grid.Column="1" Text="2" FontSize="11" TextAlignment="Center" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="2" Text="66.00" FontSize="11" FontWeight="SemiBold" TextAlignment="Left" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="2" Text="66.00 ج.م" FontSize="11" FontWeight="SemiBold" TextAlignment="Left" VerticalAlignment="Center" />
                             </Grid>
 
-                            <Grid Margin="0,2,0,2">
+                            <Grid Margin="0,3,0,3">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="50" />
-                                    <ColumnDefinition Width="70" />
+                                    <ColumnDefinition Width="80" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="زيت عباد شمس عافية 1 لتر" FontSize="11" FontWeight="Medium" />
-                                    <TextBlock Text="1 × 78.00 ج.م" FontSize="9" Foreground="#64748B" />
+                                    <TextBlock Text="1 × 78.00 ج.م" FontSize="9" Foreground="#64748B" Margin="0,1,0,0" />
                                 </StackPanel>
                                 <TextBlock Grid.Column="1" Text="1" FontSize="11" TextAlignment="Center" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="2" Text="78.00" FontSize="11" FontWeight="SemiBold" TextAlignment="Left" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="2" Text="78.00 ج.م" FontSize="11" FontWeight="SemiBold" TextAlignment="Left" VerticalAlignment="Center" />
                             </Grid>
 
-                            <Grid Margin="0,2,0,2">
+                            <Grid Margin="0,3,0,3">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="50" />
-                                    <ColumnDefinition Width="70" />
+                                    <ColumnDefinition Width="80" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="جبنة رومي طازجة (كيلو)" FontSize="11" FontWeight="Medium" />
-                                    <TextBlock Text="0.5 × 285.00 ج.م" FontSize="9" Foreground="#64748B" />
+                                    <TextBlock Text="0.5 × 285.00 ج.م" FontSize="9" Foreground="#64748B" Margin="0,1,0,0" />
                                 </StackPanel>
                                 <TextBlock Grid.Column="1" Text="0.50" FontSize="11" TextAlignment="Center" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="2" Text="142.50" FontSize="11" FontWeight="SemiBold" TextAlignment="Left" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="2" Text="142.50 ج.م" FontSize="11" FontWeight="SemiBold" TextAlignment="Left" VerticalAlignment="Center" />
                             </Grid>
 
                             <TextBlock Text="================================================" FontSize="10"
                                        Foreground="#94A3B8" TextAlignment="Center" Margin="0,6,0,6" />
 
-                            <!-- Totals -->
-                            <Grid Margin="0,1,0,1">
-                                <TextBlock Text="المجموع قبل الضريبة:" FontSize="11" />
-                                <TextBlock Text="251.32 ج.م" FontSize="11" HorizontalAlignment="Left" />
+                            <!-- Totals with explicit separate columns to avoid any overlap -->
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="المجموع قبل الضريبة:" FontSize="11" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="251.32 ج.م" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                             </Grid>
-                            <Grid Margin="0,1,0,1">
-                                <TextBlock Text="{Binding DefaultVatRate, StringFormat='ضريبة القيمة المضافة ({0:N0}%):'}" FontSize="11" />
-                                <TextBlock Text="35.18 ج.م" FontSize="11" HorizontalAlignment="Left" />
+
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding DefaultVatRate, StringFormat='ضريبة القيمة المضافة ({0:N0}%):'}" FontSize="11" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="35.18 ج.م" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                             </Grid>
-                            <Border Background="#F1F5F9" Padding="6,4" Margin="0,4,0,4" CornerRadius="4">
+
+                            <Border Background="#F1F5F9" Padding="8,6" Margin="0,6,0,6" CornerRadius="4">
                                 <Grid>
-                                    <TextBlock Text="الإجمالي النهائي:" FontSize="13" FontWeight="Bold" />
-                                    <TextBlock Text="286.50 ج.م" FontSize="13" FontWeight="Bold" Foreground="{StaticResource PrimaryDarkBrush}" HorizontalAlignment="Left" />
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="الإجمالي النهائي:" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="286.50 ج.م" FontSize="13" FontWeight="Bold" Foreground="{StaticResource PrimaryDarkBrush}" VerticalAlignment="Center" />
                                 </Grid>
                             </Border>
 
-                            <TextBlock Text="طريقة الدفع: نقدي (مدفوع: 300.00 | الباقي: 13.50)" FontSize="10" Foreground="#64748B" Margin="0,2,0,6" />
+                            <TextBlock Text="طريقة الدفع: نقدي (مدفوع: 300.00 | الباقي: 13.50)" FontSize="10" Foreground="#64748B" Margin="0,4,0,6" />
 
                             <!-- Receipt Footer Message -->
                             <TextBlock Text="{Binding ReceiptFooterMessage}" FontSize="11" FontWeight="Medium"
@@ -260,7 +275,7 @@
                             <DropShadowEffect BlurRadius="14" ShadowDepth="4" Opacity="0.15" Direction="270" />
                         </Border.Effect>
                         <StackPanel>
-                            <!-- Header with Store Info & Logo -->
+                            <!-- Header with Store Info & Logo (FlowDirection="LeftToRight" prevents reflection) -->
                             <Grid Margin="0,0,0,16">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -277,7 +292,8 @@
 
                                 <!-- Logo -->
                                 <Border Grid.Column="1" VerticalAlignment="Center">
-                                    <Image Source="{Binding LogoPath}" MaxWidth="150" MaxHeight="80" Stretch="Uniform">
+                                    <Image Source="{Binding LogoPath}" FlowDirection="LeftToRight"
+                                           MaxWidth="150" MaxHeight="80" Stretch="Uniform">
                                         <Image.Style>
                                             <Style TargetType="{x:Type Image}">
                                                 <Setter Property="Visibility" Value="Visible" />
@@ -333,8 +349,8 @@
                                             <TextBlock Grid.Column="0" Text="#" FontWeight="Bold" FontSize="11" TextAlignment="Center" />
                                             <TextBlock Grid.Column="1" Text="الصنف والوصف" FontWeight="Bold" FontSize="11" />
                                             <TextBlock Grid.Column="2" Text="الكمية" FontWeight="Bold" FontSize="11" TextAlignment="Center" />
-                                            <TextBlock Grid.Column="3" Text="سعر الوحدة" FontWeight="Bold" FontSize="11" TextAlignment="Left" />
-                                            <TextBlock Grid.Column="4" Text="الإجمالي" FontWeight="Bold" FontSize="11" TextAlignment="Left" />
+                                            <TextBlock Grid.Column="3" Text="سعر الوحدة" FontWeight="Bold" FontSize="11" TextAlignment="Center" />
+                                            <TextBlock Grid.Column="4" Text="الإجمالي" FontWeight="Bold" FontSize="11" TextAlignment="Center" />
                                         </Grid>
                                     </Border>
 
@@ -351,8 +367,8 @@
                                             <TextBlock Grid.Column="0" Text="1" FontSize="11" TextAlignment="Center" />
                                             <TextBlock Grid.Column="1" Text="أرز مصري فاخر 1 كجم" FontSize="11" FontWeight="Medium" />
                                             <TextBlock Grid.Column="2" Text="2.00" FontSize="11" TextAlignment="Center" />
-                                            <TextBlock Grid.Column="3" Text="33.00 ج.م" FontSize="11" TextAlignment="Left" />
-                                            <TextBlock Grid.Column="4" Text="66.00 ج.م" FontSize="11" FontWeight="SemiBold" TextAlignment="Left" />
+                                            <TextBlock Grid.Column="3" Text="33.00 ج.م" FontSize="11" TextAlignment="Center" />
+                                            <TextBlock Grid.Column="4" Text="66.00 ج.م" FontSize="11" FontWeight="SemiBold" TextAlignment="Center" />
                                         </Grid>
                                     </Border>
 
@@ -369,8 +385,8 @@
                                             <TextBlock Grid.Column="0" Text="2" FontSize="11" TextAlignment="Center" />
                                             <TextBlock Grid.Column="1" Text="زيت عباد شمس عافية 1 لتر" FontSize="11" FontWeight="Medium" />
                                             <TextBlock Grid.Column="2" Text="1.00" FontSize="11" TextAlignment="Center" />
-                                            <TextBlock Grid.Column="3" Text="78.00 ج.م" FontSize="11" TextAlignment="Left" />
-                                            <TextBlock Grid.Column="4" Text="78.00 ج.م" FontSize="11" FontWeight="SemiBold" TextAlignment="Left" />
+                                            <TextBlock Grid.Column="3" Text="78.00 ج.م" FontSize="11" TextAlignment="Center" />
+                                            <TextBlock Grid.Column="4" Text="78.00 ج.م" FontSize="11" FontWeight="SemiBold" TextAlignment="Center" />
                                         </Grid>
                                     </Border>
 
@@ -387,28 +403,40 @@
                                             <TextBlock Grid.Column="0" Text="3" FontSize="11" TextAlignment="Center" />
                                             <TextBlock Grid.Column="1" Text="جبنة رومي طازجة (كيلو)" FontSize="11" FontWeight="Medium" />
                                             <TextBlock Grid.Column="2" Text="0.50" FontSize="11" TextAlignment="Center" />
-                                            <TextBlock Grid.Column="3" Text="285.00 ج.م" FontSize="11" TextAlignment="Left" />
-                                            <TextBlock Grid.Column="4" Text="142.50 ج.م" FontSize="11" FontWeight="SemiBold" TextAlignment="Left" />
+                                            <TextBlock Grid.Column="3" Text="285.00 ج.م" FontSize="11" TextAlignment="Center" />
+                                            <TextBlock Grid.Column="4" Text="142.50 ج.م" FontSize="11" FontWeight="SemiBold" TextAlignment="Center" />
                                         </Grid>
                                     </Border>
                                 </StackPanel>
                             </Border>
 
-                            <!-- Summary Totals -->
-                            <Border HorizontalAlignment="Left" Width="260" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="12,8">
+                            <!-- Summary Totals with explicit separate columns to avoid any overlap -->
+                            <Border HorizontalAlignment="Left" Width="280" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="14,10">
                                 <StackPanel>
-                                    <Grid Margin="0,1">
-                                        <TextBlock Text="الإجمالي قبل الضريبة:" FontSize="11" />
-                                        <TextBlock Text="251.32 ج.م" FontSize="11" HorizontalAlignment="Left" />
+                                    <Grid Margin="0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="الإجمالي قبل الضريبة:" FontSize="11" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="251.32 ج.م" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                                     </Grid>
-                                    <Grid Margin="0,1">
-                                        <TextBlock Text="{Binding DefaultVatRate, StringFormat='ضريبة القيمة المضافة ({0:N0}%):'}" FontSize="11" />
-                                        <TextBlock Text="35.18 ج.م" FontSize="11" HorizontalAlignment="Left" />
+                                    <Grid Margin="0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding DefaultVatRate, StringFormat='ضريبة القيمة المضافة ({0:N0}%):'}" FontSize="11" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="35.18 ج.م" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                                     </Grid>
-                                    <Separator Margin="0,4" />
-                                    <Grid Margin="0,1">
-                                        <TextBlock Text="صافي الفاتورة الإجمالي:" FontSize="13" FontWeight="Bold" />
-                                        <TextBlock Text="286.50 ج.م" FontSize="13" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Left" />
+                                    <Separator Margin="0,6" />
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="صافي الفاتورة الإجمالي:" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="286.50 ج.م" FontSize="13" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" />
                                     </Grid>
                                 </StackPanel>
                             </Border>
