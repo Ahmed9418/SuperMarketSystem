@@ -300,9 +300,18 @@ public sealed class SalesService : ISalesService
     {
         var productIds = requestedLines.Select(l => l.ProductId).Distinct().ToList();
 
-        var products = await _db.Products
-            .AsNoTracking()
-            .Where(p => productIds.Contains(p.Id))
+        IQueryable<Product> productQuery = _db.Products.AsNoTracking();
+        if (productIds.Count == 1)
+        {
+            var singleId = productIds[0];
+            productQuery = productQuery.Where(p => p.Id == singleId);
+        }
+        else
+        {
+            productQuery = productQuery.Where(p => productIds.Contains(p.Id));
+        }
+
+        var products = await productQuery
             .Select(p => new
             {
                 p.Id,

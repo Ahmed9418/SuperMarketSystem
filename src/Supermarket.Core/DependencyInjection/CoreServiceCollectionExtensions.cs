@@ -67,6 +67,7 @@ public static class CoreServiceCollectionExtensions
         {
             options.UseSqlServer(connectionString, sql =>
             {
+                sql.UseCompatibilityLevel(120);
                 sql.MigrationsAssembly(typeof(SupermarketDbContext).Assembly.FullName);
                 sql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null);
                 sql.CommandTimeout(60);

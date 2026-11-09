@@ -467,7 +467,7 @@
                                 <DataGridTextColumn Header="الخصم" Width="90"
                                                     Binding="{Binding DiscountAmount, StringFormat={}{0:N2}}" />
                                 <DataGridTextColumn Header="المجموع" Width="130"
-                                                    Binding="{Binding LineTotalWithTax, StringFormat={}{0:N2} ج.م}" />
+                                                    Binding="{Binding LineTotal, StringFormat={}{0:N2} ج.م}" />
                             </DataGrid.Columns>
                         </DataGrid>
 
