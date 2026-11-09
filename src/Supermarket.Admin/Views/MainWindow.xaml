@@ -45,7 +45,7 @@
         <Style x:Key="NavButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButtonStyle}">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{StaticResource SidebarTextBrush}" />
-            <Setter Property="HorizontalContentAlignment" Value="Right" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
             <Setter Property="Height" Value="46" />
             <Setter Property="Margin" Value="8,2" />
             <Setter Property="FontSize" Value="15" />
