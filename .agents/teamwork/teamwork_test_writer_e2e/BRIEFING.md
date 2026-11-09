@@ -1,4 +1,4 @@
-# BRIEFING — 2026-11-09T13:53:00Z
+# BRIEFING — 2026-11-09T14:18:45Z
 
 ## Mission
 Design and implement the comprehensive requirement-driven opaque-box test suite for Database Backup & Recovery covering Tiers 1-4.
@@ -20,7 +20,7 @@ Design and implement the comprehensive requirement-driven opaque-box test suite 
 
 ## Current Parent
 - Conversation ID: ed585109-e633-4496-b0a3-a5993f8ab64b
-- Updated: 2026-11-09T13:53:00Z
+- Updated: 2026-11-09T14:18:45Z
 
 ## Task Summary
 - **What to build**: Comprehensive 4-tier requirement-driven opaque-box E2E and integration test suite for Database Backup & Recovery subsystem.
@@ -32,16 +32,20 @@ Design and implement the comprehensive requirement-driven opaque-box test suite 
 - None specified.
 
 ## Quality Status
-- **Build/test result**: Not yet executed
-- **Lint status**: Clean
-- **Tests added/modified**: Pending
+- **Build/test result**: 50 tests created across Tiers 1-4. 47 passed, 3 failed due to 1 escalated implementation defect in `BackupService.cs`.
+- **Lint status**: Clean (0 warnings, 0 errors in test files).
+- **Tests added/modified**:
+  - `tests/Supermarket.Admin.Tests/E2E/BackupSettingsPersistenceTests.cs` (23 tests)
+  - `tests/Supermarket.Admin.Tests/E2E/BackupRecoveryE2ETests.cs` (27 tests)
 
 ## Key Decisions Made
-- Testing through public APIs, ViewModels, and services (Admin/Core layers) representing end-user and integration flows.
+- Implemented isolated test fixtures using temporary directories and temporary database files to ensure no interference with operator's actual settings or environment.
+- Enforced strict opaque-box testing using only public interfaces (`IBackupService`, `IBackupSettingsStore`, `BackupSettings`) and real database transactions.
+- Escalate `BackupService.cs` corrupt-restore defect to parent/worker rather than modifying production source code directly.
 
 ## Artifact Index
-- TEST_INFRA.md — Test infrastructure documentation
-- TEST_READY.md — Test readiness summary
-- tests/Supermarket.Admin.Tests/E2E/BackupRecoveryE2ETests.cs — E2E test cases
-- tests/Supermarket.Admin.Tests/E2E/BackupSettingsPersistenceTests.cs — Persistence & settings test cases
-- handoff.md — Final handoff report
+- `TEST_INFRA.md` — Test infrastructure documentation at project root
+- `TEST_READY.md` — Test readiness summary and defect escalation at project root
+- `tests/Supermarket.Admin.Tests/E2E/BackupSettingsPersistenceTests.cs` — 23 tests covering Settings persistence & decoupling
+- `tests/Supermarket.Admin.Tests/E2E/BackupRecoveryE2ETests.cs` — 27 tests covering Backup/Restore engine, boundary cases, roundtrips, and disaster recovery
+- `handoff.md` — Final handoff report

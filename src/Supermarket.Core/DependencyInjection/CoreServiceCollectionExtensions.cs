@@ -109,6 +109,8 @@ public static class CoreServiceCollectionExtensions
         services.AddTransient<IHeldCartService, HeldCartService>();
         services.AddTransient<IReportService, ReportService>();
         services.AddTransient<IUserAdminService, UserAdminService>();
+        services.AddTransient<IBackupService, BackupService>();
+        services.AddSingleton<IBackupSettingsStore, JsonBackupSettingsStore>();
 
         return services;
     }

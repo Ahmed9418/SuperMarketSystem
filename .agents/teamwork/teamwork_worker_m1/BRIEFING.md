@@ -1,4 +1,4 @@
-# BRIEFING — 2026-11-09T13:53:30Z
+# BRIEFING — 2026-11-09T14:04:30Z
 
 ## Mission
 Implement Milestone 1: Core Backup & Settings Subsystem in Supermarket.Core, JSON settings store, DI registration, and comprehensive unit tests.
@@ -36,22 +36,34 @@ Implement Milestone 1: Core Backup & Settings Subsystem in Supermarket.Core, JSO
 - **Code layout**: src/Supermarket.Core/, tests/Supermarket.Core.Tests/
 
 ## Key Decisions Made
-- [initial planning phase]
+- Implemented `IBackupService`, `IBackupSettingsStore`, `BackupModels` matching `PROJECT.md` contracts.
+- Dual-provider support in `BackupService`: SQL Server uses `BACKUP DATABASE`, `RESTORE DATABASE`, connects to `master`, enforces `ALTER DATABASE [{DbName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE`, `ALTER DATABASE [{DbName}] SET MULTI_USER` in `finally`, calls `SqlConnection.ClearAllPools()`, and supports staging fallback. SQLite uses `VACUUM INTO` / `SqliteConnection.BackupDatabase`, `ClearAllPools()`, and safe file/state restoration.
+- `JsonBackupSettingsStore` persists settings machine-locally to `%LocalAppData%\SupermarketSystem\backup_settings.json` with thread safety (`SemaphoreSlim`), atomic writes via temp file replacement, and corrupt JSON tolerance.
+- Registered `IBackupService` as Transient and `IBackupSettingsStore` as Singleton in `CoreServiceCollectionExtensions.cs`.
+- Authored 12 comprehensive unit tests in `BackupServiceTests.cs`, all passing.
 
 ## Artifact Index
 - DISPATCH.md — Task assignment and instructions
 - BRIEFING.md — Persistent working memory
 - progress.md — Liveness heartbeat and progress log
+- handoff.md — 5-component handoff report
 
 ## Change Tracker
-- **Files modified**: None yet
-- **Build status**: Not run yet
+- **Files modified**:
+  - `src/Supermarket.Core/Interfaces/IBackupService.cs` — Created backup service contract
+  - `src/Supermarket.Core/Interfaces/BackupModels.cs` — Created BackupResult, RestoreResult, BackupSettings, BackupFrequency
+  - `src/Supermarket.Core/Interfaces/IBackupSettingsStore.cs` — Created settings store contract
+  - `src/Supermarket.Core/Services/BackupService.cs` — Created dual-provider backup engine with concurrency guard
+  - `src/Supermarket.Core/Services/JsonBackupSettingsStore.cs` — Created machine-local JSON settings persistence
+  - `src/Supermarket.Core/DependencyInjection/CoreServiceCollectionExtensions.cs` — Registered IBackupService and IBackupSettingsStore
+  - `tests/Supermarket.Core.Tests/BackupServiceTests.cs` — Added 12 unit tests
+- **Build status**: PASS (0 warnings, 0 errors)
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: Not run yet
-- **Lint status**: 0
-- **Tests added/modified**: None yet
+- **Build/test result**: All 12 BackupService tests passed. All 34 Admin DI/ViewModel tests passed.
+- **Lint status**: Clean
+- **Tests added/modified**: 12 new unit tests in `BackupServiceTests.cs`
 
 ## Loaded Skills
 - None

@@ -8,14 +8,16 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <TabControl>
+        <TabItem Header="الإعدادات العامة والطباعة">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
 
-        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
-            <StackPanel Margin="0,0,0,16">
+                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,0,0,16">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -629,5 +631,131 @@
                 </StackPanel>
             </Grid>
         </Border>
-    </Grid>
+            </Grid>
+        </TabItem>
+
+        <!-- Tab 2: Database Backup & Recovery -->
+        <TabItem Header="النسخ الاحتياطي واستعادة البيانات">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="0,16,0,24">
+
+                    <!-- 1. Status Card (بطاقة حالة النظام والقاعدة) -->
+                    <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="حالة النظام وقاعدة البيانات" Style="{StaticResource CardTitleTextStyle}" />
+
+                            <Grid Margin="0,4,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="1.5*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Server and Database Name -->
+                                <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                    <TextBlock Text="خادم قاعدة البيانات:" Style="{StaticResource FieldLabelTextStyle}" />
+                                    <TextBlock Text="{Binding DatabaseServerName}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource PrimaryDarkBrush}" />
+
+                                    <TextBlock Text="اسم قاعدة البيانات:" Style="{StaticResource FieldLabelTextStyle}" Margin="0,10,0,0" />
+                                    <TextBlock Text="{Binding DatabaseCatalogName}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource PrimaryDarkBrush}" />
+                                </StackPanel>
+
+                                <!-- Last Backup Time -->
+                                <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                    <TextBlock Text="تاريخ آخر نسخة احتياطية:" Style="{StaticResource FieldLabelTextStyle}" />
+                                    <TextBlock Text="{Binding LastBackupDisplayTime}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+
+                                <!-- Status Message -->
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="رسالة الحالة الحالية:" Style="{StaticResource FieldLabelTextStyle}" />
+                                    <TextBlock Text="{Binding BackupStatusMessage}" TextWrapping="Wrap"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Indeterminate Progress Bar for busy operations -->
+                            <ProgressBar Height="4" Margin="0,10,0,0" IsIndeterminate="True"
+                                         Visibility="{Binding IsBackupBusy, Converter={StaticResource BoolToVisibility}}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 2. Manual Section Card (النسخ الاحتياطي والاستعادة اليدوية) -->
+                    <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="النسخ الاحتياطي والاستعادة اليدوية" Style="{StaticResource CardTitleTextStyle}" />
+                            <TextBlock Text="إنشاء نسخة احتياطية فورية وحفظها في المسار المفضل لديك، أو استعادة قاعدة البيانات من نسخة سابقة."
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,14" TextWrapping="Wrap" />
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="💾 إنشاء نسخة احتياطية الآن"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Command="{Binding BackupNowCommand}"
+                                        Width="230" Height="40" Margin="0,0,12,0"
+                                        IsEnabled="{Binding IsBackupBusy, Converter={StaticResource InverseBoolean}}" />
+
+                                <Button Content="⚠️ استعادة قاعدة البيانات"
+                                        Style="{StaticResource DangerButtonStyle}"
+                                        Command="{Binding RestoreDatabaseCommand}"
+                                        Width="210" Height="40"
+                                        IsEnabled="{Binding IsBackupBusy, Converter={StaticResource InverseBoolean}}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 3. Auto-Backup Section Card (النسخ الاحتياطي التلقائي المجدول) -->
+                    <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="النسخ الاحتياطي التلقائي المجدول" Style="{StaticResource CardTitleTextStyle}" />
+                            <TextBlock Text="تفعيل النسخ الاحتياطي الدوري في الخلفية لحماية بيانات النظام دون الحاجة لتدخل يدوي."
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,14" TextWrapping="Wrap" />
+
+                            <!-- ToggleSwitch for Auto-Backup -->
+                            <CheckBox Content="التسجيل الاحتياطي التلقائي"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding IsAutoBackupEnabled, Mode=TwoWay}"
+                                      Margin="0,0,0,16" />
+
+                            <!-- Frequency ComboBox -->
+                            <TextBlock Text="تكرار النسخ الاحتياطي:" Style="{StaticResource FieldLabelTextStyle}" />
+                            <ComboBox ItemsSource="{Binding BackupFrequencies}"
+                                      SelectedItem="{Binding SelectedFrequency, Mode=TwoWay}"
+                                      Width="220" HorizontalAlignment="Left" Height="38" Margin="0,0,0,16" />
+
+                            <!-- Destination Folder Path & Browse Combo -->
+                            <TextBlock Text="مجلد حفظ النسخ الاحتياطية التلقائية:" Style="{StaticResource FieldLabelTextStyle}" />
+                            <Grid Margin="0,0,0,18">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Style="{StaticResource LatinInputStyle}"
+                                         Text="{Binding AutoBackupFolderPath, UpdateSourceTrigger=PropertyChanged}"
+                                         Margin="0,0,10,0" />
+
+                                <Button Grid.Column="1"
+                                        Content="📁 استعراض..."
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Command="{Binding BrowseBackupFolderCommand}"
+                                        Width="120" Height="38" />
+                            </Grid>
+
+                            <!-- Save Auto-backup settings button -->
+                            <Button Content="💾 حفظ إعدادات النسخ التلقائي"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding SaveAutoBackupSettingsCommand}"
+                                    HorizontalAlignment="Left" Width="240" Height="40"
+                                    IsEnabled="{Binding IsBackupBusy, Converter={StaticResource InverseBoolean}}" />
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+    </TabControl>
 </UserControl>

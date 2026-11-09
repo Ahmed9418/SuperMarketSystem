@@ -62,6 +62,9 @@ public partial class App : Application
 
         base.OnStartup(e);
 
+        var scheduler = Services.GetRequiredService<IAutoBackupScheduler>();
+        _ = scheduler.StartAsync();
+
         var login = Services.GetRequiredService<LoginWindow>();
         MainWindow = login;
         login.Show();
@@ -79,6 +82,7 @@ public partial class App : Application
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<AuthSession>();
         services.AddSingleton<NavigationService>();
+        services.AddSingleton<IAutoBackupScheduler, AutoBackupScheduler>();
 
         // Shell.
         services.AddSingleton<LoginWindow>();
@@ -110,5 +114,14 @@ public partial class App : Application
             "خطأ");
 
         e.Handled = true;
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        if (Services?.GetService<IAutoBackupScheduler>() is { } scheduler)
+        {
+            scheduler.Dispose();
+        }
+        base.OnExit(e);
     }
 }
