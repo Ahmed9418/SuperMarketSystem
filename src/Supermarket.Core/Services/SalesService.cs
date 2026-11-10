@@ -172,19 +172,33 @@ public sealed class SalesService : ISalesService
                 _db.Invoices.Add(invoice);
                 await _db.SaveChangesAsync(cancellationToken);
 
-                // Stock is deducted through the ledger so the movement history stays complete.
+                // Stock is deducted through the ledger on the SAME DbContext so no cross-connection lock occurs.
                 foreach (var line in pricedLines)
                 {
-                    await _stockService.AdjustStockAsync(
-                        line.ProductId,
-                        -Math.Abs(line.Quantity),
-                        StockMovementType.Sale,
-                        referenceNumber: invoiceNumber,
-                        reason: "بيع من نقطة البيع",
-                        performedBy: cashier.UserName,
-                        invoiceId: invoice.Id,
-                        shiftId: shift.Id,
-                        cancellationToken: cancellationToken);
+                    var product = await _db.Products.FirstOrDefaultAsync(p => p.Id == line.ProductId, cancellationToken);
+                    if (product is not null)
+                    {
+                        var newBalance = product.StockQuantity - Math.Abs(line.Quantity);
+                        if (newBalance < 0m)
+                        {
+                            throw new InvalidOperationException($"الكمية المتوفرة من ({product.Name}) غير كافية ({product.StockQuantity:N2})");
+                        }
+                        product.StockQuantity = newBalance;
+
+                        _db.StockMovements.Add(new StockMovement
+                        {
+                            ProductId = line.ProductId,
+                            MovementType = StockMovementType.Sale,
+                            Quantity = -Math.Abs(line.Quantity),
+                            BalanceAfter = newBalance,
+                            UnitCost = product.CostPrice,
+                            ReferenceNumber = invoiceNumber,
+                            Reason = "بيع من نقطة البيع",
+                            PerformedBy = cashier.UserName,
+                            InvoiceId = invoice.Id,
+                            ShiftId = shift.Id
+                        });
+                    }
                 }
 
                 if (request.PaymentMethod == PaymentMethod.Credit && request.CustomerId is int customerId)

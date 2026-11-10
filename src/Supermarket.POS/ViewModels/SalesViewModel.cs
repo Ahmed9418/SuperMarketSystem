@@ -881,7 +881,13 @@ public sealed partial class SalesViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _dialogs.ShowError($"تعذر إتمام عملية البيع:\n{ex.Message}", "خطأ");
+            var detail = ex;
+            while (detail.InnerException != null)
+            {
+                detail = detail.InnerException;
+            }
+            var msg = detail != ex ? $"{ex.Message}\n({detail.Message})" : ex.Message;
+            _dialogs.ShowError($"تعذر إتمام عملية البيع:\n{msg}", "خطأ");
         }
         finally
         {
